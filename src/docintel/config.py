@@ -2,14 +2,16 @@
 
 from functools import lru_cache
 
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     """Typed runtime configuration with PLAN.md defaults."""
 
-    ollama_base_url: str = "http://localhost:11434"
-    ollama_model: str = ""
+    gemini_base_url: str = "https://generativelanguage.googleapis.com/v1beta"
+    gemini_api_key: SecretStr = SecretStr("")
+    gemini_model: str = "gemini-3.8-flash"
     embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
     chroma_path: str = "data/chroma"
     collection_name: str = "documents"
