@@ -26,12 +26,13 @@ class ChromaVectorStore:
         path: str | Path | None = None,
         collection_name: str | None = None,
         embedding_model_name: str | None = None,
+        client: Any | None = None,
     ) -> None:
         settings = get_settings()
         self.path = Path(path if path is not None else settings.chroma_path)
         self.collection_name = collection_name or settings.collection_name
         self.embedding_model_name = embedding_model_name or settings.embedding_model
-        self.client = chromadb.PersistentClient(path=str(self.path))
+        self.client = client or chromadb.PersistentClient(path=str(self.path))
         self.collection = self._open_or_create()
 
     def _open_or_create(self):

@@ -71,6 +71,19 @@ def test_sentence_strategy_keeps_sentence_boundaries() -> None:
     ]
 
 
+def test_sentence_overlap_is_bounded_and_does_not_repeat_whole_prefixes() -> None:
+    text = "The cat walked through the garden. " * 100
+    chunks = SentenceChunker(chunk_size=1500, chunk_overlap=120).split(text)
+
+    assert len(chunks) < 5
+    assert all(len(chunk.text) <= 1500 for chunk in chunks)
+    assert any(chunks[index + 1].start < chunks[index].end for index in range(len(chunks) - 1))
+    assert all(
+        chunks[index].start < chunks[index + 1].start
+        for index in range(len(chunks) - 1)
+    )
+
+
 def test_section_strategy_attaches_heading_and_falls_back_for_long_sections() -> None:
     text = "# Setup\nInstall the package.\n\n# Usage\n" + "Run the command. " * 8
     chunks = chunk_pages(

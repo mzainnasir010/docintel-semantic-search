@@ -17,8 +17,8 @@ class Settings(BaseSettings):
     chroma_path: str = "data/chroma"
     collection_name: str = "documents"
     upload_dir: str = "data/uploads"
-    chunk_size: int = 800
-    chunk_overlap: int = 100
+    chunk_size: int = 1500
+    chunk_overlap: int = 0
     chunk_strategy: str = "recursive"
     top_k: int = 5
     min_similarity: float = 0.25

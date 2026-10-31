@@ -104,7 +104,7 @@ class SentenceChunker(BaseChunker):
             if unit_length > self.chunk_size:
                 if group:
                     spans.append(self._make_span(text, group, section))
-                    group = self._overlap_units(text, group)
+                    group = self._overlap_units(group)
                 for span in self._recursive_spans(text[unit[0]:unit[1]], section):
                     spans.append(
                         TextSpan(span.text, span.start + unit[0], span.end + unit[0], section)
@@ -113,7 +113,7 @@ class SentenceChunker(BaseChunker):
                 continue
             if group and unit[1] - group[0][0] > self.chunk_size:
                 spans.append(self._make_span(text, group, section))
-                group = self._overlap_units(text, group)
+                group = self._overlap_units(group)
                 while group and unit[1] - group[0][0] > self.chunk_size:
                     group = group[1:]
             group.append(unit)
@@ -126,12 +126,12 @@ class SentenceChunker(BaseChunker):
         start, end = units[0][0], units[-1][1]
         return TextSpan(text[start:end].strip(), start, end, section)
 
-    def _overlap_units(self, text: str, units: list[tuple[int, int]]) -> list[tuple[int, int]]:
+    def _overlap_units(self, units: list[tuple[int, int]]) -> list[tuple[int, int]]:
         if self.chunk_overlap == 0:
             return []
         overlap: list[tuple[int, int]] = []
         for unit in reversed(units):
-            if overlap and unit[1] - overlap[0][0] > self.chunk_overlap:
+            if overlap and overlap[-1][1] - unit[0] > self.chunk_overlap:
                 break
             overlap.insert(0, unit)
         return overlap

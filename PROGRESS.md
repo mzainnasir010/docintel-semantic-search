@@ -1,9 +1,9 @@
 # PROGRESS
 
 ## NEXT STEP
-- Step ID and title: Step 5.3 - Chunking experiments and final decision
-- Exactly what to do next: Implement `eval/chunking_experiments.py` to re-index the corpus into a temporary collection per configuration and evaluate answerable questions from `eval/questions.json`: Hit@K, Precision@K, Recall@K, MRR, average chunk length, and chunk count. Compare small (~300), medium (~800), and large (~1500) sizes; overlap 0 versus ~100-150; recursive, sentence-based, and section-aware where headings exist. Save raw results to `eval/results/chunking.csv` and document the table, chosen strategy/size/overlap, and concrete failure modes in `docs/CHUNKING_EXPERIMENTS.md`. Update `.env.example` defaults and `PROGRESS.md`; rebuild the full index with the selected configuration. Put reusable metrics in `eval/metrics.py`. Add a fast tiny-corpus harness test and hand-calculated metric unit tests.
-- Files likely to be touched: `eval/chunking_experiments.py`, `eval/metrics.py`, `eval/results/chunking.csv`, `docs/CHUNKING_EXPERIMENTS.md`, `.env.example`, tests.
+- Step ID and title: Step 6.1 - Gemini API client
+- Exactly what to do next: In `rag/`, implement a mockable `LLMClient` interface and `GeminiClient` using `httpx` at `{GEMINI_BASE_URL}/models/{GEMINI_MODEL}:generateContent` and `:streamGenerateContent`. Send the key in the `x-goog-api-key` header, use model/temperature from config, handle timeouts, and implement `generate()` plus streaming `stream()`. Add clear typed exceptions for invalid key, unavailable/missing model, quota/rate limits, API errors, network failures, and timeouts. The RAG service must depend on the interface, not Gemini directly. Add mocked unit tests for success, streaming, unavailable service/model, invalid key, rate limit, and timeout, plus a `gemini`-marked live test.
+- Files likely to be touched: `src/docintel/rag/`, `tests/unit/`, `tests/integration/`, configuration as needed.
 - Pending user input or blockers: None.
 
 ## Current state summary
@@ -14,7 +14,7 @@
 - Gemini `gemini-3.8-flash` is configured and live-verified using the ignored project-root `.env`; the key is not recorded in Git or progress notes.
 - Sentence-transformers model loads with embedding dimension 384.
 - Corpus: 9 redistributable Python docs (4 TXT, 3 PDF, 2 DOCX), each attributed; `SOURCES.md` and PSF license included.
-- Current backend regression suite: 87 passed, 0 failed, 1 live Gemini test deselected (`pytest -m "not gemini"`).
+- Current backend regression suite: 95 passed, 0 failed, 1 live Gemini test deselected (`pytest -m "not gemini"`).
 - GitHub destination was supplied by the user; push is deferred until the project is complete.
 
 ## Step log
@@ -34,12 +34,13 @@
 | 4.3 | Indexing pipeline orchestrator | done | 2026-10-31 | 57 unit passed / 14 integration passed | Added per-file ingest/preprocess/chunk/embed/store orchestration, monotonic structured progress, idempotent content-ID skips, per-file errors, directory indexing, run summaries and ignored JSONL timing log. Added `scripts/index_corpus.py`. Actual corpus run: 9 documents indexed, 472 chunks, 0 failures, 31.75 seconds. Full regression: 71 passed, 1 deselected. Commit: `step 4.3: Indexing pipeline orchestrator`. |
 | 5.1 | Search service | done | 2026-10-31 | 71 unit passed / 15 integration passed | Added query embedding, document or metadata filters, k/threshold validation, descending cosine-score ranking and explicit relevance flag; results expose all required chunk/document fields. Added CLI and paraphrased corpus integration test. CLI smoke query retrieved `python_asyncio.txt` at rank 1 (similarity 0.675) from the real index. Full regression: 86 passed, 1 deselected. Commit: `step 5.1: Search service`. |
 | 5.2 | Worked examples table | done | 2026-10-31 | 71 unit passed / 16 integration passed | Added a script that reads expected sources from evaluation questions, runs eight corpus queries plus an off-topic query against the real index, and records measured similarity/document/page results in `docs/SEARCH_EXAMPLES.md`. Actual run: 6 Correct, 2 Partial (right doc but unexpected page), 1 Weak match. Table-generation test passes; full regression: 87 passed, 1 deselected. Commit: `step 5.2: Worked examples table`. |
+| 5.3 | Chunking experiments and final decision | done | 2026-10-31 | 78 unit passed / 17 integration passed | Evaluated 18 strategy/size/overlap configurations against 25 answerable questions. Selected recursive, 1500 chars, overlap 0: Hit@5 0.920, Precision@5 0.632, Recall@5 0.900, MRR 0.890, 238 chunks (mean 1196.5 chars). Full persistent index rebuilt: 9 documents, 238 chunks, 0 failures (26.53s). Fixed and tested sentence overlap accounting after experiment exposed whole-prefix duplication. `.env.example` remains value-free per user's explicit preference; defaults in `config.py` and local ignored `.env` are 1500/0/recursive. Full regression: 95 passed, 1 live Gemini test deselected. Commit: `step 5.3: Chunking experiments and final decision`. |
 
 ## Decisions made
 - Project name: `docintel` is the temporary package name until Step 8.1 selects the final brand.
 - LLM provider: Google Gemini Developer API over HTTPS with `httpx`; model `gemini-3.8-flash` selected and live-verified.
 - Embedding model: `sentence-transformers/all-MiniLM-L6-v2` (locked default from PLAN.md).
-- Chunk size/overlap and similarity threshold: provisional PLAN.md defaults (800/100/0.25).
+- Chunk size/overlap/strategy: selected from Step 5.3 experiment (1500/0/recursive); similarity threshold remains 0.25.
 - Corpus theme: Python language and standard-library documentation; 9 files under PSF License Version 2, selected autonomously after user direction.
 
 ## External actions completed by the user
@@ -53,7 +54,7 @@
 
 ## How to run (kept current)
 - Setup: `python -m venv .venv`; `.\\.venv\\Scripts\\Activate.ps1`; `python -m pip install -r requirements.txt`.
-- Tests: `$env:HF_HUB_OFFLINE='1'; .\\.venv\\Scripts\\python.exe -m pytest -m "not gemini"` (87 passed; excludes the separate live API test; uses cached embedding model).
+- Tests: `$env:HF_HUB_OFFLINE='1'; .\\.venv\\Scripts\\python.exe -m pytest -m "not gemini"` (95 passed; excludes the separate live API test; uses cached embedding model).
 - Gemini check: `.venv\\Scripts\\python.exe scripts/check_gemini.py`.
 - Backend: not implemented yet.
 - Frontend: not implemented yet.

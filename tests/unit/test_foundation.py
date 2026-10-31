@@ -10,7 +10,8 @@ def test_settings_load_defaults(monkeypatch) -> None:
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     settings = Settings(_env_file=None)
     assert settings.embedding_model == "sentence-transformers/all-MiniLM-L6-v2"
-    assert settings.chunk_size == 800
+    assert settings.chunk_size == 1500
+    assert settings.chunk_overlap == 0
     assert settings.gemini_api_key.get_secret_value() == ""
     assert settings.gemini_model == "gemini-3.8-flash"
 
