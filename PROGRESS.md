@@ -1,9 +1,9 @@
 # PROGRESS
 
 ## NEXT STEP
-- Step ID and title: Step 3.2 - Evaluation question set (external review)
-- Exactly what to do next: Read the corpus and create `eval/questions.json` with 25-30 natural questions. Each item needs an ID, question, expected document name, expected page or pages, short verifiable expected answer, and type (`direct`, `paraphrased`, `multi_chunk`, or `unanswerable`). Include 4-5 related but unanswerable questions and at least 5 paraphrased ones. Add a schema test for required fields, corpus document references, page ranges, and category counts. Then ask the user to spot-check at least 8 questions against the source pages, fix any incorrect ones, and wait for confirmation before marking this step complete or moving on.
-- Files likely to be touched: `eval/questions.json`, `tests/unit/`, possibly a question validation utility.
+- Step ID and title: Step 4.1 - Embedder
+- Exactly what to do next: In `embeddings/`, implement an `Embedder` class wrapping sentence-transformers with lazy singleton loading, configurable batch encoding, L2-normalized outputs, separate `embed_documents(list[str])` and `embed_query(str)` methods using the same model, config-driven model name, and exposed model name/dimension. Detect and use GPU when available, otherwise CPU. Keep embedding model name available for later vector-store metadata and mismatch detection. Add unit tests for output shape/dimension, normalization, deterministic output, batch versus single encoding, empty list, and a semantic sanity comparison between annual leave/vacation phrasing and unrelated text.
+- Files likely to be touched: `src/docintel/embeddings/`, `src/docintel/config.py`, `tests/unit/`.
 - Pending user input or blockers: None.
 
 ## Current state summary
@@ -14,7 +14,7 @@
 - Gemini `gemini-3.8-flash` is configured and live-verified using the ignored project-root `.env`; the key is not recorded in Git or progress notes.
 - Sentence-transformers model loads with embedding dimension 384.
 - Corpus: 9 redistributable Python docs (4 TXT, 3 PDF, 2 DOCX), each attributed; `SOURCES.md` and PSF license included.
-- Current backend regression suite: 48 passed, 0 failed, 1 live Gemini test deselected (`pytest -m "not gemini"`).
+- Current backend regression suite: 50 passed, 0 failed, 1 live Gemini test deselected (`pytest -m "not gemini"`).
 - GitHub destination was supplied by the user; push is deferred until the project is complete.
 
 ## Step log
@@ -28,6 +28,7 @@
 | 2.1 | Cleaning functions | done | 2026-10-31 | 27 unit passed / 6 integration passed | Added NFKC normalization, punctuation standardization, control/format cleanup, hyphenation repair, paragraph joining, and whitespace collapse while preserving headings, lists, tables, paragraphs, and case. Added loader-to-cleaner integration coverage. `pytest -m "not gemini"`: 33 passed, 1 deselected. Commit: `step 2.1: Cleaning functions`. |
 | 2.2 | Repeated header/footer removal and memory-safe processing | done | 2026-10-31 | 30 unit passed / 8 integration passed | Added page-streaming PDF extraction, two-pass repeated boundary/header/footer detection, normalized printed page numbers, per-page cleanup and metadata retention through batch ingestion, and structured removal reports with logging. Added synthetic and corpus PDF integration coverage plus a before/after example in `docs/`. `pytest -m "not gemini"`: 38 passed, 1 deselected. Commit: `step 2.2: Repeated header/footer removal and memory-safe processing`. |
 | 3.1 | Chunkers | done | 2026-10-31 | 39 unit passed / 9 integration passed | Added recursive (LangChain), sentence-based, and section-aware strategies; config-driven factory; stable chunk IDs, source metadata, timestamps, page-local character offsets, overlap, empty filtering, and per-document deduplication. Integration exercises corpus ingestion through preprocessing and chunking. `pytest -m "not gemini"`: 48 passed, 1 deselected. Commit: `step 3.1: Chunkers`. |
+| 3.2 | Evaluation question set (external review) | done | 2026-10-31 | 40 unit passed / 10 integration passed | User reviewed/approved six questions and provided corrections for Q-028 and Q-016. Programmatic source audit confirmed Q-010 wording and found `Path.chmod()` / `Path.lchmod()` in pathlib, so invalid unanswerable Q-031 was removed. Final set has 29 questions, 4 unanswerable, and 6 paraphrased. Schema and corpus evidence tests pass; full regression `pytest -m "not gemini"`: 50 passed, 1 deselected. Commit: `step 3.2: Evaluation question set`. |
 
 ## Decisions made
 - Project name: `docintel` is the temporary package name until Step 8.1 selects the final brand.
@@ -47,7 +48,7 @@
 
 ## How to run (kept current)
 - Setup: `python -m venv .venv`; `.\\.venv\\Scripts\\Activate.ps1`; `python -m pip install -r requirements.txt`.
-- Tests: `.venv\\Scripts\\python.exe -m pytest -m "not gemini"` (48 passed; excludes the separate live API test).
+- Tests: `.venv\\Scripts\\python.exe -m pytest -m "not gemini"` (50 passed; excludes the separate live API test).
 - Gemini check: `.venv\\Scripts\\python.exe scripts/check_gemini.py`.
 - Backend: not implemented yet.
 - Frontend: not implemented yet.

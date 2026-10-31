@@ -1,0 +1,263 @@
+[
+  {
+    "id": "q-001",
+    "question": "What syntax does asyncio use for concurrent Python code?",
+    "expected_doc_name": "python_asyncio.txt",
+    "expected_pages": [1],
+    "expected_answer": "asyncio uses Python's async/await syntax.",
+    "type": "direct",
+    "evidence": ["asyncio is a library to write concurrent code using", "the async/await syntax."]
+  },
+  {
+    "id": "q-002",
+    "question": "What kind of application code is asyncio described as a good fit for?",
+    "expected_doc_name": "python_asyncio.txt",
+    "expected_pages": [1],
+    "expected_answer": "It is often a good fit for I/O-bound and high-level structured network code.",
+    "type": "paraphrased",
+    "evidence": ["asyncio is often a perfect fit for IO-bound and high-level", "structured network code."]
+  },
+  {
+    "id": "q-004",
+    "question": "What is JSON according to the Python documentation?",
+    "expected_doc_name": "python_json.docx",
+    "expected_pages": [1],
+    "expected_answer": "JSON is a lightweight data interchange format inspired by JavaScript object literal syntax.",
+    "type": "direct",
+    "evidence": ["JSON (JavaScript Object Notation)", "is a lightweight data interchange format inspired by", "JavaScript object literal syntax"]
+  },
+  {
+    "id": "q-005",
+    "question": "Why should an application limit the size of untrusted JSON input?",
+    "expected_doc_name": "python_json.docx",
+    "expected_pages": [1],
+    "expected_answer": "A malicious JSON string may consume considerable CPU and memory, so limiting its size is recommended.",
+    "type": "paraphrased",
+    "evidence": ["A malicious", "JSON string may cause the decoder to consume considerable CPU and memory", "resources. Limiting the size of data to be parsed is recommended."]
+  },
+  {
+    "id": "q-006",
+    "question": "Which function converts Python objects into JSON text?",
+    "expected_doc_name": "python_json.docx",
+    "expected_pages": [1],
+    "expected_answer": "Use json.dumps() to encode a Python object as a JSON string.",
+    "type": "direct",
+    "evidence": ["json.dumps(['foo', {'bar': ('baz', None, 1.0, 2)}])"]
+  },
+  {
+    "id": "q-007",
+    "question": "How can JSON be decoded from a string?",
+    "expected_doc_name": "python_json.docx",
+    "expected_pages": [1],
+    "expected_answer": "Use json.loads() to decode JSON from a string.",
+    "type": "direct",
+    "evidence": ["json.loads('[\"foo\", {\"bar\":[\"baz\", null, 1.0, 2]}]')"]
+  },
+  {
+    "id": "q-008",
+    "question": "What does pathlib provide for filesystem paths?",
+    "expected_doc_name": "python_pathlib.docx",
+    "expected_pages": [1],
+    "expected_answer": "It provides path classes with semantics appropriate to different operating systems.",
+    "type": "direct",
+    "evidence": ["This module offers classes representing filesystem paths with semantics appropriate for different operating systems."]
+  },
+  {
+    "id": "q-009",
+    "question": "Which pathlib class is usually the right starting choice for a platform-native path?",
+    "expected_doc_name": "python_pathlib.docx",
+    "expected_pages": [1],
+    "expected_answer": "Path is usually the right choice because it creates a concrete path for the current platform.",
+    "type": "paraphrased",
+    "evidence": ["Path is most likely what you need. It instantiates a concrete path for the platform the code is running on."]
+  },
+  {
+    "id": "q-010",
+    "question": "How do pure paths differ from concrete paths?",
+    "expected_doc_name": "python_pathlib.docx",
+    "expected_pages": [1],
+    "expected_answer": "Pure paths perform computational path operations without I/O; concrete paths also provide I/O operations.",
+    "type": "multi_chunk",
+    "evidence": ["pure paths, which provide purely computational operations without I/O", "concrete paths, which inherit from pure paths but also provide I/O operations"]
+  },
+  {
+    "id": "q-011",
+    "question": "Why might someone use PureWindowsPath on a Unix computer?",
+    "expected_doc_name": "python_pathlib.docx",
+    "expected_pages": [1],
+    "expected_answer": "It lets code manipulate Windows paths without running on Windows or accessing the operating system.",
+    "type": "paraphrased",
+    "evidence": ["If you want to manipulate Windows paths on a Unix machine (or vice versa). You cannot instantiate a WindowsPath when running on Unix, but you can instantiate PureWindowsPath."]
+  },
+  {
+    "id": "q-013",
+    "question": "How can code reuse a function defined in another Python file?",
+    "expected_doc_name": "python_modules.txt",
+    "expected_pages": [1],
+    "expected_answer": "Put the definition in a module and import it into another module or script.",
+    "type": "paraphrased",
+    "evidence": ["definitions from a module can be imported into other modules or into the main module"]
+  },
+  {
+    "id": "q-014",
+    "question": "What two broad kinds of errors does the tutorial distinguish?",
+    "expected_doc_name": "python_errors_exceptions.txt",
+    "expected_pages": [1],
+    "expected_answer": "Syntax errors and exceptions.",
+    "type": "direct",
+    "evidence": ["There are (at least) two distinguishable kinds of errors: syntax errors and exceptions."]
+  },
+  {
+    "id": "q-015",
+    "question": "What is another name for a syntax error?",
+    "expected_doc_name": "python_errors_exceptions.txt",
+    "expected_pages": [1],
+    "expected_answer": "A syntax error is also called a parsing error.",
+    "type": "direct",
+    "evidence": ["Syntax errors, also known as parsing errors"]
+  },
+  {
+    "id": "q-016",
+    "question": "When does Python raise an exception, and are exceptions always fatal?",
+    "expected_doc_name": "python_errors_exceptions.txt",
+    "expected_pages": [1],
+    "expected_answer": "Exceptions are errors detected during execution, and they are not unconditionally fatal.",
+    "type": "direct",
+    "evidence": ["Errors detected during execution are called exceptions", "are not unconditionally fatal"]
+  },
+  {
+    "id": "q-017",
+    "question": "What happens when list.pop() is called without an index?",
+    "expected_doc_name": "python_data_structures.txt",
+    "expected_pages": [1],
+    "expected_answer": "It removes and returns the last item in the list.",
+    "type": "direct",
+    "evidence": ["If no index is specified, a.pop() removes and returns the last item in the list."]
+  },
+  {
+    "id": "q-018",
+    "question": "What collection should you use for an efficient first-in, first-out queue?",
+    "expected_doc_name": "python_data_structures.txt",
+    "expected_pages": [1],
+    "expected_answer": "Use collections.deque, which supports fast appends and pops from both ends.",
+    "type": "paraphrased",
+    "evidence": ["To implement a queue, use collections.deque which was designed to have fast appends and pops from both ends."]
+  },
+  {
+    "id": "q-019",
+    "question": "How do the tutorial's stack and queue examples differ?",
+    "expected_doc_name": "python_data_structures.txt",
+    "expected_pages": [1],
+    "expected_answer": "A stack is last-in, first-out and uses append/pop; a queue is first-in, first-out and is better implemented with collections.deque.",
+    "type": "multi_chunk",
+    "evidence": ["the last element added is the first element retrieved", "the first element added is the first element retrieved", "To implement a queue, use collections.deque"]
+  },
+  {
+    "id": "q-020",
+    "question": "What does list.extend(iterable) do?",
+    "expected_doc_name": "python_data_structures.txt",
+    "expected_pages": [1],
+    "expected_answer": "It extends the list by appending all items from the iterable.",
+    "type": "direct",
+    "evidence": ["Extend the list by appending all the items from the iterable."]
+  },
+  {
+    "id": "q-022",
+    "question": "What kinds of command-line arguments can ArgumentParser.add_argument() describe?",
+    "expected_doc_name": "python_argparse.pdf",
+    "expected_pages": [2],
+    "expected_answer": "Positional arguments, options that accept values, and on/off flags.",
+    "type": "direct",
+    "evidence": ["It supports positional arguments, options that accept values, and on/off flags:"]
+  },
+  {
+    "id": "q-023",
+    "question": "What object does parse_args() return its parsed values in?",
+    "expected_doc_name": "python_argparse.pdf",
+    "expected_pages": [2],
+    "expected_answer": "An argparse.Namespace object.",
+    "type": "direct",
+    "evidence": ["The ArgumentParser.parse_args() method runs the parser and places the extracted data in a argparse.Namespace object:"]
+  },
+  {
+    "id": "q-024",
+    "question": "How can a program customize the usage line shown by ArgumentParser?",
+    "expected_doc_name": "python_argparse.pdf",
+    "expected_pages": [3],
+    "expected_answer": "Pass a usage string with the usage keyword argument; otherwise argparse generates one from the arguments.",
+    "type": "paraphrased",
+    "evidence": ["usage - The string describing the program usage (default: generated from arguments added to parser)"]
+  },
+  {
+    "id": "q-025",
+    "question": "What logger pattern does the logging example recommend using in each module?",
+    "expected_doc_name": "python_logging.pdf",
+    "expected_pages": [2, 3],
+    "expected_answer": "The example creates a module-level logger with getLogger(__name__) and uses it to log events.",
+    "type": "multi_chunk",
+    "evidence": ["creating a module level logger with getLogger(__name__), and using that", "logger to do any needed logging."]
+  },
+  {
+    "id": "q-026",
+    "question": "How are messages from a module-level logger passed to higher-level loggers?",
+    "expected_doc_name": "python_logging.pdf",
+    "expected_pages": [3],
+    "expected_answer": "They are forwarded up the logger hierarchy to handlers of higher-level loggers, eventually reaching the root logger.",
+    "type": "multi_chunk",
+    "evidence": ["Logged messages to the module-level logger get forwarded to handlers of loggers in higher-level modules", "all the way up to the highest-level logger known as the root logger"]
+  },
+  {
+    "id": "q-027",
+    "question": "What is basicConfig() commonly used to configure?",
+    "expected_doc_name": "python_logging.pdf",
+    "expected_pages": [3],
+    "expected_answer": "It quickly configures the root logger for many use cases.",
+    "type": "direct",
+    "evidence": ["basicConfig() provides a quick way to configure the root logger that handles many use cases."]
+  },
+  {
+    "id": "q-028",
+    "question": "Which string method requires you to supply the values to be formatted, using { and } as replacement fields?",
+    "expected_doc_name": "python_input_output.pdf",
+    "expected_pages": [2],
+    "expected_answer": "The str.format() method.",
+    "type": "direct",
+    "evidence": ["The str.format() method of strings requires more manual effort.", "use { and } to mark where a variable will be substituted"]
+  },
+  {
+    "id": "q-029",
+    "question": "Does the corpus say whether asyncio automatically runs CPU-bound work across multiple processor cores?",
+    "expected_doc_name": null,
+    "expected_pages": [],
+    "expected_answer": "The corpus does not specify automatic multi-core execution for CPU-bound work.",
+    "type": "unanswerable",
+    "evidence": []
+  },
+  {
+    "id": "q-030",
+    "question": "Which built-in Python module validates JSON data against a JSON Schema?",
+    "expected_doc_name": null,
+    "expected_pages": [],
+    "expected_answer": "The corpus does not identify a built-in module for JSON Schema validation.",
+    "type": "unanswerable",
+    "evidence": []
+  },
+  {
+    "id": "q-032",
+    "question": "What retry policy does the Python tutorial recommend after a network exception?",
+    "expected_doc_name": null,
+    "expected_pages": [],
+    "expected_answer": "The corpus does not define a network exception retry policy.",
+    "type": "unanswerable",
+    "evidence": []
+  },
+  {
+    "id": "q-033",
+    "question": "Does argparse provide built-in shell tab completion according to this corpus?",
+    "expected_doc_name": null,
+    "expected_pages": [],
+    "expected_answer": "The corpus does not state that argparse provides built-in shell tab completion.",
+    "type": "unanswerable",
+    "evidence": []
+  }
+]
