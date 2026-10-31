@@ -53,8 +53,17 @@ class SearchResult(BaseModel):
     """Placeholder for a ranked vector search result."""
 
     chunk: Chunk
-    similarity: float = Field(ge=0.0, le=1.0)
+    similarity: float = Field(ge=-1.0, le=1.0)
     rank: int = Field(ge=1)
+
+
+class IndexedDocument(BaseModel):
+    """Document summary stored in the persistent vector index."""
+
+    doc_id: str
+    doc_name: str
+    chunk_count: int = Field(ge=0)
+    pages: list[int] = Field(default_factory=list)
 
 
 class IngestionSummary(BaseModel):
