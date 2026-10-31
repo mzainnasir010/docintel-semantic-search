@@ -1,0 +1,17 @@
+fastapi
+uvicorn[standard]
+python-multipart
+gradio
+chromadb
+sentence-transformers
+pymupdf
+python-docx
+langchain-text-splitters
+httpx
+pydantic
+pydantic-settings
+python-dotenv
+numpy
+pandas
+pytest
+pytest-cov
