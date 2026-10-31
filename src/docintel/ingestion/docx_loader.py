@@ -84,6 +84,7 @@ def load_docx(
                 doc_name=resolved_doc_name,
                 page_number=1,
                 text="",
+                source_path=str(source_path),
             )
         ]
     return [
@@ -93,6 +94,7 @@ def load_docx(
             page_number=1,
             section=heading,
             text="\n\n".join(lines),
+            source_path=str(source_path),
         )
         for heading, lines in sections
     ]

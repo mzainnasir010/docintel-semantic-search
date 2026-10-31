@@ -45,6 +45,7 @@ def load_txt(
             doc_name=resolved_doc_name,
             page_number=1,
             text=text.strip(),
+            source_path=str(source_path),
         )
     ]
 

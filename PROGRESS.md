@@ -1,9 +1,9 @@
 # PROGRESS
 
 ## NEXT STEP
-- Step ID and title: Step 3.1 - Chunkers
-- Exactly what to do next: Implement a common chunking interface and recursive character, sentence-based, and section-aware strategies. Accept chunk size and overlap; select the strategy from config. Each chunk must include stable document/page/index identity, document metadata, section, source path, ingestion timestamp, and character offsets. Never cross documents; skip empty chunks and deduplicate identical chunks within each document. Default to recursive splitting with 800 character size and 100 overlap. Add unit tests for size, overlap, nonempty output, complete metadata, stable IDs, sentence/table boundaries, and an integration test for ingest → preprocess → chunk a corpus document.
-- Files likely to be touched: `src/docintel/chunking/`, `src/docintel/models.py`, `src/docintel/config.py`, `tests/unit/`, `tests/integration/`.
+- Step ID and title: Step 3.2 - Evaluation question set (external review)
+- Exactly what to do next: Read the corpus and create `eval/questions.json` with 25-30 natural questions. Each item needs an ID, question, expected document name, expected page or pages, short verifiable expected answer, and type (`direct`, `paraphrased`, `multi_chunk`, or `unanswerable`). Include 4-5 related but unanswerable questions and at least 5 paraphrased ones. Add a schema test for required fields, corpus document references, page ranges, and category counts. Then ask the user to spot-check at least 8 questions against the source pages, fix any incorrect ones, and wait for confirmation before marking this step complete or moving on.
+- Files likely to be touched: `eval/questions.json`, `tests/unit/`, possibly a question validation utility.
 - Pending user input or blockers: None.
 
 ## Current state summary
@@ -14,7 +14,7 @@
 - Gemini `gemini-3.8-flash` is configured and live-verified using the ignored project-root `.env`; the key is not recorded in Git or progress notes.
 - Sentence-transformers model loads with embedding dimension 384.
 - Corpus: 9 redistributable Python docs (4 TXT, 3 PDF, 2 DOCX), each attributed; `SOURCES.md` and PSF license included.
-- Current backend regression suite: 38 passed, 0 failed, 1 live Gemini test deselected (`pytest -m "not gemini"`).
+- Current backend regression suite: 48 passed, 0 failed, 1 live Gemini test deselected (`pytest -m "not gemini"`).
 - GitHub destination was supplied by the user; push is deferred until the project is complete.
 
 ## Step log
@@ -27,6 +27,7 @@
 | 1.2 | Router, multi-document ingestion, error boundaries, stable IDs | done | 2026-10-31 | 21 unit passed / 5 integration passed | Added signature/extension routing, streaming SHA-256 IDs, batch summary and per-file failure records. Mixed-batch integration verifies valid files continue around corrupt and unsupported files. `pytest -m "not gemini"`: 26 passed, 1 deselected. Commit: `step 1.2: Router, multi-document ingestion, error boundaries, stable IDs`. |
 | 2.1 | Cleaning functions | done | 2026-10-31 | 27 unit passed / 6 integration passed | Added NFKC normalization, punctuation standardization, control/format cleanup, hyphenation repair, paragraph joining, and whitespace collapse while preserving headings, lists, tables, paragraphs, and case. Added loader-to-cleaner integration coverage. `pytest -m "not gemini"`: 33 passed, 1 deselected. Commit: `step 2.1: Cleaning functions`. |
 | 2.2 | Repeated header/footer removal and memory-safe processing | done | 2026-10-31 | 30 unit passed / 8 integration passed | Added page-streaming PDF extraction, two-pass repeated boundary/header/footer detection, normalized printed page numbers, per-page cleanup and metadata retention through batch ingestion, and structured removal reports with logging. Added synthetic and corpus PDF integration coverage plus a before/after example in `docs/`. `pytest -m "not gemini"`: 38 passed, 1 deselected. Commit: `step 2.2: Repeated header/footer removal and memory-safe processing`. |
+| 3.1 | Chunkers | done | 2026-10-31 | 39 unit passed / 9 integration passed | Added recursive (LangChain), sentence-based, and section-aware strategies; config-driven factory; stable chunk IDs, source metadata, timestamps, page-local character offsets, overlap, empty filtering, and per-document deduplication. Integration exercises corpus ingestion through preprocessing and chunking. `pytest -m "not gemini"`: 48 passed, 1 deselected. Commit: `step 3.1: Chunkers`. |
 
 ## Decisions made
 - Project name: `docintel` is the temporary package name until Step 8.1 selects the final brand.
@@ -46,7 +47,7 @@
 
 ## How to run (kept current)
 - Setup: `python -m venv .venv`; `.\\.venv\\Scripts\\Activate.ps1`; `python -m pip install -r requirements.txt`.
-- Tests: `.venv\\Scripts\\python.exe -m pytest -m "not gemini"` (38 passed; excludes the separate live API test).
+- Tests: `.venv\\Scripts\\python.exe -m pytest -m "not gemini"` (48 passed; excludes the separate live API test).
 - Gemini check: `.venv\\Scripts\\python.exe scripts/check_gemini.py`.
 - Backend: not implemented yet.
 - Frontend: not implemented yet.

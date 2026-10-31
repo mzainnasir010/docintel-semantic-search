@@ -31,6 +31,7 @@ class PageContent(BaseModel):
     page_number: int = Field(ge=1)
     section: str | None = None
     text: str
+    source_path: str | Path = ""
 
 
 class Chunk(BaseModel):
@@ -44,6 +45,8 @@ class Chunk(BaseModel):
     section: str | None = None
     source_path: str | Path = ""
     ingested_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    char_start: int = Field(default=0, ge=0)
+    char_end: int = Field(default=0, ge=0)
 
 
 class SearchResult(BaseModel):

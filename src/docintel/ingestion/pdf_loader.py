@@ -99,6 +99,7 @@ def iter_pdf_pages(
                     doc_name=resolved_doc_name,
                     page_number=page_index,
                     text=text.strip(),
+                    source_path=str(source_path),
                 )
     except Exception as error:
         logger.warning("Could not load PDF %s: %s", source_path, error)
