@@ -1,9 +1,9 @@
 # PROGRESS
 
 ## NEXT STEP
-- Step ID and title: Step 4.1 - Embedder
-- Exactly what to do next: In `embeddings/`, implement an `Embedder` class wrapping sentence-transformers with lazy singleton loading, configurable batch encoding, L2-normalized outputs, separate `embed_documents(list[str])` and `embed_query(str)` methods using the same model, config-driven model name, and exposed model name/dimension. Detect and use GPU when available, otherwise CPU. Keep embedding model name available for later vector-store metadata and mismatch detection. Add unit tests for output shape/dimension, normalization, deterministic output, batch versus single encoding, empty list, and a semantic sanity comparison between annual leave/vacation phrasing and unrelated text.
-- Files likely to be touched: `src/docintel/embeddings/`, `src/docintel/config.py`, `tests/unit/`.
+- Step ID and title: Step 4.2 - Vector store (ChromaDB)
+- Exactly what to do next: In `vectorstore/`, implement a ChromaDB wrapper using a persistent client at `CHROMA_PATH` and collection `COLLECTION_NAME` with cosine distance. Implement `add_chunks(chunks, embeddings)` with upsert by `chunk_id`; query with optional metadata filters and return similarity as `1 - cosine_distance`; `delete_document(doc_id)`; `list_documents()` with document name, chunk count, and pages; `count()`; and `reset()`. Store required document/chunk metadata and the embedding model name in the collection, validate the model name when opening an existing collection, and preserve data across process restarts. Add temporary-directory tests for add/query/delete/reset, idempotent upsert, ordering, persistence, metadata round trip, and model mismatch.
+- Files likely to be touched: `src/docintel/vectorstore/`, `src/docintel/config.py`, `src/docintel/models.py`, `tests/unit/`, `tests/integration/`.
 - Pending user input or blockers: None.
 
 ## Current state summary
@@ -14,7 +14,7 @@
 - Gemini `gemini-3.8-flash` is configured and live-verified using the ignored project-root `.env`; the key is not recorded in Git or progress notes.
 - Sentence-transformers model loads with embedding dimension 384.
 - Corpus: 9 redistributable Python docs (4 TXT, 3 PDF, 2 DOCX), each attributed; `SOURCES.md` and PSF license included.
-- Current backend regression suite: 50 passed, 0 failed, 1 live Gemini test deselected (`pytest -m "not gemini"`).
+- Current backend regression suite: 60 passed, 0 failed, 1 live Gemini test deselected (`pytest -m "not gemini"`).
 - GitHub destination was supplied by the user; push is deferred until the project is complete.
 
 ## Step log
@@ -29,6 +29,7 @@
 | 2.2 | Repeated header/footer removal and memory-safe processing | done | 2026-10-31 | 30 unit passed / 8 integration passed | Added page-streaming PDF extraction, two-pass repeated boundary/header/footer detection, normalized printed page numbers, per-page cleanup and metadata retention through batch ingestion, and structured removal reports with logging. Added synthetic and corpus PDF integration coverage plus a before/after example in `docs/`. `pytest -m "not gemini"`: 38 passed, 1 deselected. Commit: `step 2.2: Repeated header/footer removal and memory-safe processing`. |
 | 3.1 | Chunkers | done | 2026-10-31 | 39 unit passed / 9 integration passed | Added recursive (LangChain), sentence-based, and section-aware strategies; config-driven factory; stable chunk IDs, source metadata, timestamps, page-local character offsets, overlap, empty filtering, and per-document deduplication. Integration exercises corpus ingestion through preprocessing and chunking. `pytest -m "not gemini"`: 48 passed, 1 deselected. Commit: `step 3.1: Chunkers`. |
 | 3.2 | Evaluation question set (external review) | done | 2026-10-31 | 40 unit passed / 10 integration passed | User reviewed/approved six questions and provided corrections for Q-028 and Q-016. Programmatic source audit confirmed Q-010 wording and found `Path.chmod()` / `Path.lchmod()` in pathlib, so invalid unanswerable Q-031 was removed. Final set has 29 questions, 4 unanswerable, and 6 paraphrased. Schema and corpus evidence tests pass; full regression `pytest -m "not gemini"`: 50 passed, 1 deselected. Commit: `step 3.2: Evaluation question set`. |
+| 4.1 | Embedder | done | 2026-10-31 | 49 unit passed / 11 integration passed | Added lazy shared SentenceTransformer loading, GPU/CPU selection, configurable batch encoding, normalized document/query vectors, dimension/model metadata, and shape validation. Unit coverage includes deterministic batching and actual vacation/leave semantic sanity; integration embeds ingested corpus chunks. `pytest` offline with cached model: 60 passed, 1 live Gemini test deselected. Commit: `step 4.1: Embedder`. |
 
 ## Decisions made
 - Project name: `docintel` is the temporary package name until Step 8.1 selects the final brand.
@@ -48,7 +49,7 @@
 
 ## How to run (kept current)
 - Setup: `python -m venv .venv`; `.\\.venv\\Scripts\\Activate.ps1`; `python -m pip install -r requirements.txt`.
-- Tests: `.venv\\Scripts\\python.exe -m pytest -m "not gemini"` (50 passed; excludes the separate live API test).
+- Tests: `$env:HF_HUB_OFFLINE='1'; .\\.venv\\Scripts\\python.exe -m pytest -m "not gemini"` (60 passed; excludes the separate live API test; uses cached embedding model).
 - Gemini check: `.venv\\Scripts\\python.exe scripts/check_gemini.py`.
 - Backend: not implemented yet.
 - Frontend: not implemented yet.

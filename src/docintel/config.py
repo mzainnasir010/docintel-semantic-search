@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     gemini_api_key: SecretStr = SecretStr("")
     gemini_model: str = "gemini-3.8-flash"
     embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
+    embedding_batch_size: int = 32
     chroma_path: str = "data/chroma"
     collection_name: str = "documents"
     upload_dir: str = "data/uploads"
