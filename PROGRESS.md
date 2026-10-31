@@ -1,9 +1,9 @@
 # PROGRESS
 
 ## NEXT STEP
-- Step ID and title: Step 5.2 - Worked examples table
-- Exactly what to do next: Create `scripts/make_search_examples.py` to run 8-10 diverse real queries (including paraphrased queries and one weak/off-topic query) against the actual persistent index. Write `docs/SEARCH_EXAMPLES.md` as a table with columns for query, retrieved document/page, similarity, and correctness (`Correct`, `Partial`, or `Weak match`). Judge results against the expected sources in `eval/questions.json`; use only measured values. Add a test that runs the script and verifies the generated table columns and row count.
-- Files likely to be touched: `scripts/make_search_examples.py`, `docs/SEARCH_EXAMPLES.md`, `tests/`.
+- Step ID and title: Step 5.3 - Chunking experiments and final decision
+- Exactly what to do next: Implement `eval/chunking_experiments.py` to re-index the corpus into a temporary collection per configuration and evaluate answerable questions from `eval/questions.json`: Hit@K, Precision@K, Recall@K, MRR, average chunk length, and chunk count. Compare small (~300), medium (~800), and large (~1500) sizes; overlap 0 versus ~100-150; recursive, sentence-based, and section-aware where headings exist. Save raw results to `eval/results/chunking.csv` and document the table, chosen strategy/size/overlap, and concrete failure modes in `docs/CHUNKING_EXPERIMENTS.md`. Update `.env.example` defaults and `PROGRESS.md`; rebuild the full index with the selected configuration. Put reusable metrics in `eval/metrics.py`. Add a fast tiny-corpus harness test and hand-calculated metric unit tests.
+- Files likely to be touched: `eval/chunking_experiments.py`, `eval/metrics.py`, `eval/results/chunking.csv`, `docs/CHUNKING_EXPERIMENTS.md`, `.env.example`, tests.
 - Pending user input or blockers: None.
 
 ## Current state summary
@@ -14,7 +14,7 @@
 - Gemini `gemini-3.8-flash` is configured and live-verified using the ignored project-root `.env`; the key is not recorded in Git or progress notes.
 - Sentence-transformers model loads with embedding dimension 384.
 - Corpus: 9 redistributable Python docs (4 TXT, 3 PDF, 2 DOCX), each attributed; `SOURCES.md` and PSF license included.
-- Current backend regression suite: 86 passed, 0 failed, 1 live Gemini test deselected (`pytest -m "not gemini"`).
+- Current backend regression suite: 87 passed, 0 failed, 1 live Gemini test deselected (`pytest -m "not gemini"`).
 - GitHub destination was supplied by the user; push is deferred until the project is complete.
 
 ## Step log
@@ -33,6 +33,7 @@
 | 4.2 | Vector store (ChromaDB) | done | 2026-10-31 | 57 unit passed / 12 integration passed | Added persistent Chroma cosine collection with stable-ID upserts, filtered ranked search, similarity scores, document listing, deletion/reset, complete chunk metadata, and embedding-model mismatch validation. Tests verify metadata round-trip, idempotency, persistence across store recreation, and end-to-end corpus search. `pytest` offline with cached model: 69 passed, 1 deselected. Commit: `step 4.2: Vector store (ChromaDB)`. |
 | 4.3 | Indexing pipeline orchestrator | done | 2026-10-31 | 57 unit passed / 14 integration passed | Added per-file ingest/preprocess/chunk/embed/store orchestration, monotonic structured progress, idempotent content-ID skips, per-file errors, directory indexing, run summaries and ignored JSONL timing log. Added `scripts/index_corpus.py`. Actual corpus run: 9 documents indexed, 472 chunks, 0 failures, 31.75 seconds. Full regression: 71 passed, 1 deselected. Commit: `step 4.3: Indexing pipeline orchestrator`. |
 | 5.1 | Search service | done | 2026-10-31 | 71 unit passed / 15 integration passed | Added query embedding, document or metadata filters, k/threshold validation, descending cosine-score ranking and explicit relevance flag; results expose all required chunk/document fields. Added CLI and paraphrased corpus integration test. CLI smoke query retrieved `python_asyncio.txt` at rank 1 (similarity 0.675) from the real index. Full regression: 86 passed, 1 deselected. Commit: `step 5.1: Search service`. |
+| 5.2 | Worked examples table | done | 2026-10-31 | 71 unit passed / 16 integration passed | Added a script that reads expected sources from evaluation questions, runs eight corpus queries plus an off-topic query against the real index, and records measured similarity/document/page results in `docs/SEARCH_EXAMPLES.md`. Actual run: 6 Correct, 2 Partial (right doc but unexpected page), 1 Weak match. Table-generation test passes; full regression: 87 passed, 1 deselected. Commit: `step 5.2: Worked examples table`. |
 
 ## Decisions made
 - Project name: `docintel` is the temporary package name until Step 8.1 selects the final brand.
@@ -52,7 +53,7 @@
 
 ## How to run (kept current)
 - Setup: `python -m venv .venv`; `.\\.venv\\Scripts\\Activate.ps1`; `python -m pip install -r requirements.txt`.
-- Tests: `$env:HF_HUB_OFFLINE='1'; .\\.venv\\Scripts\\python.exe -m pytest -m "not gemini"` (86 passed; excludes the separate live API test; uses cached embedding model).
+- Tests: `$env:HF_HUB_OFFLINE='1'; .\\.venv\\Scripts\\python.exe -m pytest -m "not gemini"` (87 passed; excludes the separate live API test; uses cached embedding model).
 - Gemini check: `.venv\\Scripts\\python.exe scripts/check_gemini.py`.
 - Backend: not implemented yet.
 - Frontend: not implemented yet.
