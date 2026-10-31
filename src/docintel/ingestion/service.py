@@ -8,9 +8,10 @@ import zipfile
 from pathlib import Path
 
 from docintel.ingestion.docx_loader import load_docx
-from docintel.ingestion.pdf_loader import get_pdf_creation_date, load_pdf
+from docintel.ingestion.pdf_loader import get_pdf_creation_date, iter_pdf_pages
 from docintel.ingestion.txt_loader import load_txt
 from docintel.models import DocumentRecord, IngestionSummary
+from docintel.preprocessing import BoilerplateReport, iter_preprocessed_pages
 
 logger = logging.getLogger(__name__)
 _SUPPORTED = {".pdf": "pdf", ".docx": "docx", ".txt": "txt"}
@@ -69,14 +70,22 @@ def ingest_files(paths: list[str | Path]) -> IngestionSummary:
                 raise ValueError(f"Unsupported document type: {path.suffix or '(no extension)'}")
             name = path.name
             if file_type == "pdf":
-                loaded_pages = load_pdf(path, doc_id=doc_id, doc_name=name)
+                page_factory = lambda: iter_pdf_pages(
+                    path, doc_id=doc_id, doc_name=name
+                )
                 created_at = get_pdf_creation_date(path)
             elif file_type == "docx":
-                loaded_pages = load_docx(path, doc_id=doc_id, doc_name=name)
+                source_pages = load_docx(path, doc_id=doc_id, doc_name=name)
+                page_factory = lambda: iter(source_pages)
                 created_at = None
             else:
-                loaded_pages = load_txt(path, doc_id=doc_id, doc_name=name)
+                source_pages = load_txt(path, doc_id=doc_id, doc_name=name)
+                page_factory = lambda: iter(source_pages)
                 created_at = None
+            cleanup_report = BoilerplateReport()
+            loaded_pages = list(
+                iter_preprocessed_pages(page_factory, report=cleanup_report)
+            )
             if not loaded_pages:
                 raise ValueError(f"No pages could be extracted from {name}")
             record = DocumentRecord(

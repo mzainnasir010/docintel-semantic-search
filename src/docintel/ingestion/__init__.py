@@ -3,6 +3,7 @@
 from docintel.ingestion.docx_loader import load_docx
 from docintel.ingestion.pdf_loader import (
     get_pdf_creation_date,
+    iter_pdf_pages,
     load_pdf,
     parse_pdf_creation_date,
 )
@@ -17,6 +18,7 @@ __all__ = [
     "load_pdf",
     "load_txt",
     "ingest_files",
+    "iter_pdf_pages",
     "parse_pdf_creation_date",
     "stable_document_id",
 ]

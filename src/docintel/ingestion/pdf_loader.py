@@ -6,6 +6,7 @@ import logging
 import re
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from collections.abc import Iterator
 
 import pymupdf
 
@@ -64,17 +65,16 @@ def get_pdf_creation_date(path: str | Path) -> datetime | None:
         return None
 
 
-def load_pdf(
+def iter_pdf_pages(
     path: str | Path,
     *,
     doc_id: str | None = None,
     doc_name: str | None = None,
-) -> list[PageContent]:
-    """Extract page text; empty/image-only pages are retained as empty records."""
+) -> Iterator[PageContent]:
+    """Yield extracted PDF pages one at a time, retaining empty/image-only pages."""
     source_path = Path(path)
     resolved_doc_id = doc_id or source_path.stem
     resolved_doc_name = doc_name or source_path.name
-    pages: list[PageContent] = []
     try:
         with pymupdf.open(source_path) as pdf:
             for page_index, page in enumerate(pdf, start=1):
@@ -94,16 +94,22 @@ def load_pdf(
                         page_index,
                         source_path,
                     )
-                pages.append(
-                    PageContent(
-                        doc_id=resolved_doc_id,
-                        doc_name=resolved_doc_name,
-                        page_number=page_index,
-                        text=text.strip(),
-                    )
+                yield PageContent(
+                    doc_id=resolved_doc_id,
+                    doc_name=resolved_doc_name,
+                    page_number=page_index,
+                    text=text.strip(),
                 )
     except Exception as error:
         logger.warning("Could not load PDF %s: %s", source_path, error)
-        return []
-    return pages
+
+
+def load_pdf(
+    path: str | Path,
+    *,
+    doc_id: str | None = None,
+    doc_name: str | None = None,
+) -> list[PageContent]:
+    """Compatibility helper that materializes the page-wise PDF iterator."""
+    return list(iter_pdf_pages(path, doc_id=doc_id, doc_name=doc_name))
 

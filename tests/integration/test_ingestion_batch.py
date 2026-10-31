@@ -1,6 +1,7 @@
 """Mixed batch ingestion keeps processing after individual file failures."""
 
 from docintel.ingestion import ingest_files
+import pymupdf
 
 
 def test_batch_ingests_valid_files_and_reports_corrupt_and_unsupported(
@@ -28,3 +29,23 @@ def test_batch_ingests_valid_files_and_reports_corrupt_and_unsupported(
     assert "Unsupported document type" in result.documents[2].error_message
     assert len(result.pages) == 3
     assert result.pages[-1].doc_name == "good.txt"
+
+
+def test_ingestion_service_cleans_repeated_pdf_boilerplate(tmp_path) -> None:
+    pdf_path = tmp_path / "boilerplate.pdf"
+    document = pymupdf.open()
+    for page_number in range(1, 4):
+        page = document.new_page()
+        page.insert_text((72, 40), "Repeated Manual Header")
+        page.insert_text((72, 100), f"Important content on page {page_number}")
+        page.insert_text((72, 780), f"Page {page_number} of 3")
+    document.save(pdf_path)
+    document.close()
+
+    result = ingest_files([pdf_path])
+
+    assert result.succeeded == 1
+    assert [page.page_number for page in result.pages] == [1, 2, 3]
+    assert all("Repeated Manual Header" not in page.text for page in result.pages)
+    assert all("Important content" in page.text for page in result.pages)
+    assert all("Page " not in page.text for page in result.pages)
