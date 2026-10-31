@@ -1,0 +1,57 @@
+{
+  "generated_at": "2026-10-31T15:25:05.032582+00:00",
+  "pricing_checked": "2026-10-31",
+  "pricing_source": "https://ai.google.dev/gemini-api/docs/pricing",
+  "pricing_tier": "Gemini Developer API Standard paid-tier list pricing; free-tier eligibility is unknown",
+  "model": "gemini-3.8-flash",
+  "pricing_usd_per_million_tokens": {
+    "input": 0.75,
+    "output_including_thinking": 3.75
+  },
+  "question_count": 29,
+  "answerable_question_count": 25,
+  "unanswerable_question_count": 4,
+  "rag_deferred_question_count": 29,
+  "retrieval": {
+    "3": {
+      "hit": 0.88,
+      "precision": 0.6133333333333333,
+      "recall": 0.86,
+      "mrr": 0.88
+    },
+    "5": {
+      "hit": 0.92,
+      "precision": 0.6,
+      "recall": 0.9,
+      "mrr": 0.89
+    }
+  },
+  "mean_correct_similarity": {
+    "3": 0.5711784051223234,
+    "5": 0.5403685516637304
+  },
+  "answer_correct_proxy_rate": null,
+  "grounding_valid_rate": null,
+  "refusal_correct_rate": null,
+  "latency_ms_mean": {
+    "retrieval_ms": null,
+    "generation_ms": null,
+    "end_to_end_ms": 82.13758620689656,
+    "retrieval_k3_ms": 50.80055172413793,
+    "retrieval_k5_ms": 31.099999999999998
+  },
+  "indexing_seconds_latest_run": 26.527852299972437,
+  "token_usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "estimated_paid_tier_cost_usd": null,
+    "sources": [
+      "deferred_gemini_run"
+    ]
+  },
+  "excluded_metrics": {
+    "BLEU/ROUGE": "not suitable as standalone measures of factual correctness for short grounded answers",
+    "LLM_judge": "excluded to avoid adding a second model, cost, and subjective variance; lexical key-fact coverage is a transparent proxy, not a final human correctness judgment",
+    "actual_billed_cost": "cannot be established without account tier, discounts, caching, and billing data; reported cost applies published paid-tier token rates"
+  }
+}

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import re
 from typing import Iterable
 
 from quillseek.models import SearchResult
@@ -73,3 +74,50 @@ def mean_metrics(values: Iterable[RetrievalMetrics]) -> RetrievalMetrics:
         recall_at_k=sum(value.recall_at_k for value in observations) / count,
         mrr=sum(value.mrr for value in observations) / count,
     )
+
+
+def mean_relevant_similarity(
+    results: Iterable[SearchResult], *, expected_doc_name: str, expected_pages: Iterable[int]
+) -> float | None:
+    """Average similarity over retrieved chunks matching gold document/pages."""
+    expected = set(expected_pages)
+    matches = [
+        result.similarity
+        for result in results
+        if result.chunk.doc_name == expected_doc_name
+        and result.chunk.page_number in expected
+    ]
+    return sum(matches) / len(matches) if matches else None
+
+
+_STOP_WORDS = {
+    "a", "an", "and", "are", "as", "at", "be", "by", "does", "for", "from",
+    "in", "is", "it", "of", "on", "or", "that", "the", "this", "to", "use",
+    "used", "using", "what", "which", "with",
+}
+
+
+def key_fact_coverage(expected_answer: str, generated_answer: str) -> float:
+    """Return the fraction of expected content terms present in a generated answer.
+
+    This transparent lexical proxy supports screening only; it is not an LLM judge.
+    """
+    expected_terms = {
+        token.casefold()
+        for token in re.findall(r"[\w]+(?:\.[\w]+)*", expected_answer)
+        if token.casefold() not in _STOP_WORDS and len(token) > 1
+    }
+    if not expected_terms:
+        raise ValueError("expected answer must contain at least one key fact")
+    answer_terms = {
+        token.casefold()
+        for token in re.findall(r"[\w]+(?:\.[\w]+)*", generated_answer)
+    }
+    return len(expected_terms & answer_terms) / len(expected_terms)
+
+
+def priced_token_cost_usd(input_tokens: int, output_tokens: int, *, input_per_million: float, output_per_million: float) -> float:
+    """Compute paid-tier token cost from the selected model's published rates."""
+    if min(input_tokens, output_tokens) < 0:
+        raise ValueError("token counts must be non-negative")
+    return (input_tokens * input_per_million + output_tokens * output_per_million) / 1_000_000

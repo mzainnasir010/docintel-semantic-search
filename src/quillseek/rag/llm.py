@@ -77,6 +77,7 @@ class GeminiClient:
         self.timeout = timeout
         self.max_retries = max_retries
         self.retry_base_delay = retry_base_delay
+        self.last_usage: dict[str, int] | None = None
 
     def close(self) -> None:
         """Close the internally created HTTP client, if any."""
@@ -96,6 +97,16 @@ class GeminiClient:
         )
         try:
             data = response.json()
+            usage = data.get("usageMetadata", {})
+            self.last_usage = (
+                {
+                    "input_tokens": int(usage["promptTokenCount"]),
+                    "output_tokens": int(usage["candidatesTokenCount"]),
+                    "total_tokens": int(usage.get("totalTokenCount", 0)),
+                }
+                if "promptTokenCount" in usage and "candidatesTokenCount" in usage
+                else None
+            )
             return self._extract_text(data)
         except (ValueError, KeyError, IndexError, TypeError) as exc:
             raise APIError("Gemini returned an invalid generation response.") from exc

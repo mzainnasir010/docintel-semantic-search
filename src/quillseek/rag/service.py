@@ -38,6 +38,9 @@ class RAGResponse(BaseModel):
     retrieved_chunks: list[SearchResult] = Field(default_factory=list)
     retrieval_ms: float = Field(ge=0.0)
     generation_ms: float = Field(ge=0.0)
+    input_tokens: int | None = Field(default=None, ge=0)
+    output_tokens: int | None = Field(default=None, ge=0)
+    total_tokens: int | None = Field(default=None, ge=0)
     refused: bool
 
 
@@ -94,6 +97,12 @@ class RAGService:
         generation_started = time.perf_counter()
         raw_answer = self.llm_client.generate(built.text)
         generation_ms = (time.perf_counter() - generation_started) * 1000.0
+        usage = getattr(self.llm_client, "last_usage", None)
+        token_fields = {
+            "input_tokens": usage.get("input_tokens") if usage else None,
+            "output_tokens": usage.get("output_tokens") if usage else None,
+            "total_tokens": usage.get("total_tokens") if usage else None,
+        }
         answer = raw_answer.strip()
         if answer.casefold() == REFUSAL:
             return RAGResponse(
@@ -102,6 +111,7 @@ class RAGService:
                 retrieved_chunks=retrieved,
                 retrieval_ms=retrieval_ms,
                 generation_ms=generation_ms,
+                **token_fields,
                 refused=True,
             )
 
@@ -112,6 +122,7 @@ class RAGService:
             retrieved_chunks=retrieved,
             retrieval_ms=retrieval_ms,
             generation_ms=generation_ms,
+            **token_fields,
             refused=False,
         )
 

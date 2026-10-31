@@ -1,10 +1,10 @@
 # PROGRESS
 
 ## NEXT STEP
-- Step ID and title: Step 9.1 - Evaluation runner
-- Exactly what to do next: Write `eval/run_eval.py` using `eval/metrics.py`: for each question in `eval/questions.json` run retrieval (K=3 and K=5) and RAG; compute Precision@K, Recall@K, MRR, mean similarity of correct hits, answer correctness (key-fact check against expected_answer, plus an optional manual-review column), grounding (does every cited label map to a retrieved chunk; refusal correctness on unanswerable questions), and performance (retrieval latency, generation latency, end-to-end latency, indexing time from Step 4.3, Gemini token usage, and estimated API cost per query using a dated official pricing source). Save raw per-question results to `eval/results/results.csv` and summary to `eval/results/summary.json`. Explain in the output which suggested metrics you excluded and why. Tests: metric unit tests with hand-computed values; a runner test on a tiny set with a stub LLM. Done when results files are produced from the real system.
-- Files likely to be touched: `eval/run_eval.py`, `eval/metrics.py`, `tests/unit/`, `tests/integration/`, `docs/`.
-- Pending user input or blockers: None for Step 9.1. Playwright is unavailable; user screenshot capture is listed in `docs/UI_MANUAL_CHECKLIST.md` for Step 10.2.
+- Step ID and title: Step 9.2 - Four cases and error analysis
+- Exactly what to do next: Write `docs/EVALUATION.md` from `eval/results/results.csv` with setup (corpus, model, chunking, K), metric tables, and the four required evidence cases: correct chunk, wrong chunk, multiple relevant chunks, and insufficient information. For each include the query, retrieved chunk(s), score/rank, observed answer (or explicitly say Gemini answer is deferred), why it succeeded/failed, and a fix or limitation. Cover every requested error mode without inventing failures: incorrect retrieval, irrelevant chunks, poor chunk boundaries, missing context, hallucination, ambiguity, duplicate content, and long context. State which cases cannot be confirmed because Gemini live calls were skipped. Tests must check required document section headings. Current retrieval artifact is real; answer-level metrics must stay explicitly deferred. Run focused and full non-Gemini tests, update this handoff, then commit `step 9.2: Four cases and error analysis`.
+- Files likely to be touched: `docs/EVALUATION.md`, `tests/integration/test_evaluation_doc.py`, `PROGRESS.md`.
+- Pending user input or blockers: User will obtain a usable Gemini API key/quota later and explicitly authorized skipping tests requiring a key until then. Do not request secrets. Re-run live RAG evaluation and Gemini tests when the user provides the replacement configuration.
 
 ## Current state summary
 - Step 0.1 scaffold is implemented; Python 3.11.9 is available.
@@ -14,7 +14,7 @@
 - Gemini `gemini-3.8-flash` is configured and live-verified using the ignored project-root `.env`; the key is not recorded in Git or progress notes.
 - Sentence-transformers model loads with embedding dimension 384.
 - Corpus: 9 redistributable Python docs (4 TXT, 3 PDF, 2 DOCX), each attributed; `SOURCES.md` and PSF license included.
-- Current regression suite: 150 passed, 0 failed, 11 live Gemini tests deselected (`pytest -m "not gemini"`). UI contrast, responsive/focus styling, favicon launcher configuration, manual checklist, and Gradio build configuration are verified. Step 6.1 live Gemini client test passed after clearing a stale `GEMINI_API_KEY` process override; live grounding/API variants remain opt-in due the Gemini 429 observed in Step 6.3.
+- Current regression suite: 152 passed, 0 failed, 11 live Gemini tests deselected (`pytest -m "not gemini"`). Step 9.1 retrieval evaluation has run against the real local index and produced 29 result rows; Gemini answer-level fields are marked deferred at the user's request until a usable key/quota is available. The runner supports resuming quota-limited evaluations. Earlier live Gemini checks reached the provider but were blocked by HTTP 429 free-tier quota exhaustion.
 - GitHub destination was supplied by the user; push is deferred until the project is complete.
 
 ## Step log
@@ -44,11 +44,13 @@
 | 8.2 | App shell and Documents tab | done | 2026-10-31 | 6 unit passed / 1 integration passed | Added `APIClient` with `BACKEND_URL`, upload/documents/index/status/delete/reset/search/ask calls, friendly network/API errors, and multipart upload. Built Gradio shell with persistent logo header/footer, backend/Gemini health, Documents/Search/Ask tabs, document table and empty state, multi-file upload, progress polling with failures/counts, delete and confirmed collection reset. Added `scripts/run_frontend.py`; theme/CSS are applied at launch per Gradio 6. API client unit tests, app construction smoke test, and TestClient end-to-end client integration pass. Full regression: 141 passed, 11 live Gemini cases deselected. Commit: `step 8.2: App shell and Documents tab`. |
 | 8.3 | Search and Ask tabs | done | 2026-10-31 | 4 unit passed / 0 new integration | Wired both tabs to backend-only APIClient calls. Search displays ranked document/page/section/text cards with similarity pills; Ask displays a separate cited answer, expandable source cards, refusal styling, latency, example corpus questions, and loading/disabled button states. Added safe formatting helpers that escape returned HTML. Reused Step 8.2 client-to-TestClient integration and full-app smoke tests. Full regression: 145 passed, 11 live Gemini cases deselected. Commit: `step 8.3: Search and Ask tabs`. |
 | 8.4 | Polish and UI end-to-end verification | done | 2026-10-31 | 4 unit passed / 1 integration passed | Verified contrast ratios for deep-blue text on pink and white on blue, responsive/focus/hover/reduced-motion CSS, page title, and launcher favicon. Added favicon to Gradio launch, documented two-terminal startup, and added `docs/UI_MANUAL_CHECKLIST.md`. Playwright is unavailable, so browser console/narrow-width screenshots and real upload→index→search→ask visual checks remain a user task for Step 10.2. Focused checks: 7 passed. Full regression: 150 passed, 11 live Gemini cases deselected. Commit: `step 8.4: Polish and UI end-to-end verification`. |
+| 9.1 | Evaluation runner | done with live RAG deferred | 2026-10-31 | 5 new unit tests / 3 integration tests; focused evaluation tests: 31 passed; full regression: 152 passed, 11 live Gemini tests deselected | Implemented retrieval K=3/K=5, answer-key coverage proxy, citation/source grounding, refusal, timing, Gemini usage metadata, dated cost estimates, resumable quota-limited execution, and explicit `--skip-rag` mode. Ran all 29 questions against the real persistent index and saved `eval/results/results.csv` and `eval/results/summary.json`. Retrieval results: Hit@5 .92, Precision@5 .600, Recall@5 .900, MRR .890. Gemini answer-level metrics are marked deferred in every row because the user's configured free-tier quota returned HTTP 429; no generation success is claimed. This live run/test is explicitly deferred per user's instruction until a working key/quota is supplied. Commit: `step 9.1: Evaluation runner`. |
 
 ## Decisions made
 - Project and package name: Quillseek (`quillseek`).
 - LLM provider: Google Gemini Developer API over HTTPS with `httpx`; model `gemini-3.8-flash` selected and live-verified.
 - Embedding model: `sentence-transformers/all-MiniLM-L6-v2` (locked default from PLAN.md).
+- Evaluation pricing: Google Gemini 3.8 Flash Standard paid-tier list price checked 2026-10-31 ($0.75/M input, $3.75/M output through 2026-12-31); see `eval/PRICING.md`. Evaluator uses Gemini `usageMetadata` when available; billed cost remains an estimate because the account billing tier is unknown.
 - Chunk size/overlap/strategy: selected from Step 5.3 experiment (1500/0/recursive); similarity threshold remains 0.25. Gemini 3.8 generation uses thinking level `low`; the prompt requires exact source-label citations and includes a cited-answer example.
 - Corpus theme: Python language and standard-library documentation; 9 files under PSF License Version 2, selected autonomously after user direction.
 
@@ -59,12 +61,12 @@
 - User supplied the GitHub repository URL and authorized pushing the complete project when ready; no push has occurred.
 
 ## Blockers / open questions
-- None. The live-test issue was a stale process-level `GEMINI_API_KEY` overriding the updated `.env` value. Pydantic environment values take precedence over `.env`; remove or update the Windows environment variable in shells used to run the app.
+- **Deferred live Gemini verification:** User is obtaining a usable key/quota and instructed Codex to skip tests requiring it in the meantime. Previous key was confirmed loaded from `.env` (no process override) but Google's endpoint returned `429 RESOURCE_EXHAUSTED`, 20 free-tier requests/day. Re-run the 11 `gemini` tests and `eval/run_eval.py --resume` after the user updates local `.env`; never request or record the secret. Retrieval-only metrics exist; generated answers, grounding, token usage, and API cost still require the live run.
 
 ## How to run (kept current)
 - Setup: `python -m venv .venv`; `.\\.venv\\Scripts\\Activate.ps1`; `python -m pip install -r requirements.txt`.
 - If a Windows process environment variable `GEMINI_API_KEY` is stale, clear it in that PowerShell session with `Remove-Item Env:GEMINI_API_KEY -ErrorAction SilentlyContinue`; otherwise it overrides the key in `.env`.
-- Tests: `$env:HF_HUB_OFFLINE='1'; .\\.venv\\Scripts\\python.exe -m pytest -m "not gemini"` (150 passed; excludes all 11 live Gemini cases; uses cached embedding model).
+- Tests: `$env:HF_HUB_OFFLINE='1'; .\\.venv\\Scripts\\python.exe -m pytest -m "not gemini"` (152 passed; excludes all 11 live Gemini cases; uses cached embedding model).
 - Gemini check: `.venv\\Scripts\\python.exe scripts/check_gemini.py`.
 - Backend (terminal 1): `.\.venv\Scripts\python.exe scripts/run_backend.py`.
 - Frontend (terminal 2): `.\.venv\Scripts\python.exe scripts/run_frontend.py`; open `http://127.0.0.1:7860`.

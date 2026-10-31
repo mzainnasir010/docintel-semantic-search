@@ -58,6 +58,20 @@ def test_generate_builds_configured_request_and_extracts_text() -> None:
     assert b'"thinkingLevel":"low"' in request.content
 
 
+def test_generate_captures_provider_token_usage_metadata() -> None:
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={
+            "candidates": [{"content": {"parts": [{"text": "Answer"}]}}],
+            "usageMetadata": {"promptTokenCount": 123, "candidatesTokenCount": 17,
+                              "totalTokenCount": 140},
+        })
+
+    with httpx.Client(transport=httpx.MockTransport(handler)) as http:
+        client = GeminiClient(settings(), client=http)
+        assert client.generate("Question") == "Answer"
+        assert client.last_usage == {"input_tokens": 123, "output_tokens": 17, "total_tokens": 140}
+
+
 def test_stream_yields_sse_text_chunks() -> None:
     body = (
         'data: {"candidates":[{"content":{"parts":[{"text":"First "}]}}]}\n\n'
