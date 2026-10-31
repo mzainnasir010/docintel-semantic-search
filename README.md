@@ -32,6 +32,24 @@ Add your Gemini key to `.env` as `GEMINI_API_KEY=...`. Keep `.env` private; it i
 
 The API defaults to `http://127.0.0.1:8000`. OpenAPI documentation is at [`/docs`](http://127.0.0.1:8000/docs), and endpoint examples are in [docs/api.md](docs/api.md).
 
+## Run the application
+
+Open two PowerShell terminals in the project directory. Start the backend in the first:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/run_backend.py
+```
+
+Start the frontend in the second:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/run_frontend.py
+```
+
+Then open `http://127.0.0.1:7860`. The frontend connects to the configured `BACKEND_URL`.
+
+For visual checks, follow [the UI manual checklist](docs/UI_MANUAL_CHECKLIST.md). Browser automation is unavailable in the current environment; capture the requested screenshots during Step 10.2.
+
 ## Tests
 
 ```powershell

@@ -22,6 +22,7 @@ def main() -> None:
         server_port=settings.ui_port,
         theme=THEME,
         css=CSS_PATH.read_text(encoding="utf-8"),
+        favicon_path=str(Path(__file__).resolve().parents[1] / "assets" / "favicon.svg"),
     )
 
 
