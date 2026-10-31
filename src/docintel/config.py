@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     chroma_path: str = "data/chroma"
     collection_name: str = "documents"
     upload_dir: str = "data/uploads"
+    max_upload_bytes: int = 20 * 1024 * 1024
+    gradio_origin: str = "http://127.0.0.1:7860"
     chunk_size: int = 1500
     chunk_overlap: int = 0
     chunk_strategy: str = "recursive"
