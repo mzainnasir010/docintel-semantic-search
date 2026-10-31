@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     top_k: int = 5
     min_similarity: float = 0.25
     llm_temperature: float = 0.1
+    llm_max_output_tokens: int = 128
     api_host: str = "127.0.0.1"
     api_port: int = 8000
     backend_url: str = "http://127.0.0.1:8000"

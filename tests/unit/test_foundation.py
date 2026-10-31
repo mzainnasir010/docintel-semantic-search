@@ -14,6 +14,7 @@ def test_settings_load_defaults(monkeypatch) -> None:
     assert settings.chunk_overlap == 0
     assert settings.gemini_api_key.get_secret_value() == ""
     assert settings.gemini_model == "gemini-3.8-flash"
+    assert settings.llm_max_output_tokens == 128
 
 
 def test_settings_accept_environment_overrides(monkeypatch) -> None:

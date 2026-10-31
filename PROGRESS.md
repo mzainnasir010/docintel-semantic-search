@@ -1,8 +1,8 @@
 # PROGRESS
 
 ## NEXT STEP
-- Step ID and title: Step 6.1 - Gemini API client
-- Exactly what to do next: In `rag/`, implement a mockable `LLMClient` interface and `GeminiClient` using `httpx` at `{GEMINI_BASE_URL}/models/{GEMINI_MODEL}:generateContent` and `:streamGenerateContent`. Send the key in the `x-goog-api-key` header, use model/temperature from config, handle timeouts, and implement `generate()` plus streaming `stream()`. Add clear typed exceptions for invalid key, unavailable/missing model, quota/rate limits, API errors, network failures, and timeouts. The RAG service must depend on the interface, not Gemini directly. Add mocked unit tests for success, streaming, unavailable service/model, invalid key, rate limit, and timeout, plus a `gemini`-marked live test.
+- Step ID and title: Step 6.2 - Prompt builder and RAG service
+- Exactly what to do next: Implement a prompt builder with a system instruction and clearly delimited CONTEXT block; label each context chunk `[S1]`, `[S2]`, etc. with document name and page, then include the user QUESTION. Instruct Gemini to use only supplied context, cite each claim inline, answer concisely, and reply exactly `the answer is not present in the supplied documents` if context is insufficient. Implement `RAGService.ask(question, k)` to retrieve with `SearchService`; skip the LLM and return the exact refusal when nothing passes `MIN_SIMILARITY`; otherwise build the prompt, call the `LLMClient` interface, validate citations, and return answer, source metadata/snippets/labels, retrieved chunks, retrieval/generation latency, and refused flag. Enforce a configured context budget by reducing K or truncating chunks. Add retrieval-only mode for the Search tab. Test prompt construction, refusal without LLM, source mapping, budget enforcement, and integration against the real index with a stub LLM.
 - Files likely to be touched: `src/docintel/rag/`, `tests/unit/`, `tests/integration/`, configuration as needed.
 - Pending user input or blockers: None.
 
@@ -14,7 +14,7 @@
 - Gemini `gemini-3.8-flash` is configured and live-verified using the ignored project-root `.env`; the key is not recorded in Git or progress notes.
 - Sentence-transformers model loads with embedding dimension 384.
 - Corpus: 9 redistributable Python docs (4 TXT, 3 PDF, 2 DOCX), each attributed; `SOURCES.md` and PSF license included.
-- Current backend regression suite: 95 passed, 0 failed, 1 live Gemini test deselected (`pytest -m "not gemini"`).
+- Current backend regression suite: 109 passed, 0 failed, 2 live Gemini tests deselected (`pytest -m "not gemini"`). The Step 6.1 live Gemini client test passed after clearing a stale `GEMINI_API_KEY` process-environment override so Pydantic loaded the updated key from `.env`.
 - GitHub destination was supplied by the user; push is deferred until the project is complete.
 
 ## Step log
@@ -35,6 +35,7 @@
 | 5.1 | Search service | done | 2026-10-31 | 71 unit passed / 15 integration passed | Added query embedding, document or metadata filters, k/threshold validation, descending cosine-score ranking and explicit relevance flag; results expose all required chunk/document fields. Added CLI and paraphrased corpus integration test. CLI smoke query retrieved `python_asyncio.txt` at rank 1 (similarity 0.675) from the real index. Full regression: 86 passed, 1 deselected. Commit: `step 5.1: Search service`. |
 | 5.2 | Worked examples table | done | 2026-10-31 | 71 unit passed / 16 integration passed | Added a script that reads expected sources from evaluation questions, runs eight corpus queries plus an off-topic query against the real index, and records measured similarity/document/page results in `docs/SEARCH_EXAMPLES.md`. Actual run: 6 Correct, 2 Partial (right doc but unexpected page), 1 Weak match. Table-generation test passes; full regression: 87 passed, 1 deselected. Commit: `step 5.2: Worked examples table`. |
 | 5.3 | Chunking experiments and final decision | done | 2026-10-31 | 78 unit passed / 17 integration passed | Evaluated 18 strategy/size/overlap configurations against 25 answerable questions. Selected recursive, 1500 chars, overlap 0: Hit@5 0.920, Precision@5 0.632, Recall@5 0.900, MRR 0.890, 238 chunks (mean 1196.5 chars). Full persistent index rebuilt: 9 documents, 238 chunks, 0 failures (26.53s). Fixed and tested sentence overlap accounting after experiment exposed whole-prefix duplication. `.env.example` remains value-free per user's explicit preference; defaults in `config.py` and local ignored `.env` are 1500/0/recursive. Full regression: 95 passed, 1 live Gemini test deselected. Commit: `step 5.3: Chunking experiments and final decision`. |
+| 6.1 | Gemini API client | done | 2026-10-31 | 92 unit passed / 18 integration passed | Added provider-neutral `LLMClient` protocol; `GeminiClient` generate and SSE stream support; typed auth/model/quota/service/API/network/timeout errors; configurable output cap (128 default); and bounded exponential backoff with jitter/Retry-After handling for transient 408/429/5xx and transport failures. Mock tests cover payload, SSE, status mapping, retries, timeouts, and malformed responses. Diagnosed the live failure: a stale process-level `GEMINI_API_KEY` differed from the updated `.env` key and overrode it. Clearing that process override made the live test pass. Full non-live regression: 109 passed, 2 live tests deselected; live client integration: 1 passed. Commit: `step 6.1: Gemini API client`. |
 
 ## Decisions made
 - Project name: `docintel` is the temporary package name until Step 8.1 selects the final brand.
@@ -50,11 +51,12 @@
 - User supplied the GitHub repository URL and authorized pushing the complete project when ready; no push has occurred.
 
 ## Blockers / open questions
-- None for Step 1.1.
+- None. The live-test issue was a stale process-level `GEMINI_API_KEY` overriding the updated `.env` value. Pydantic environment values take precedence over `.env`; remove or update the Windows environment variable in shells used to run the app.
 
 ## How to run (kept current)
 - Setup: `python -m venv .venv`; `.\\.venv\\Scripts\\Activate.ps1`; `python -m pip install -r requirements.txt`.
-- Tests: `$env:HF_HUB_OFFLINE='1'; .\\.venv\\Scripts\\python.exe -m pytest -m "not gemini"` (95 passed; excludes the separate live API test; uses cached embedding model).
+- If a Windows process environment variable `GEMINI_API_KEY` is stale, clear it in that PowerShell session with `Remove-Item Env:GEMINI_API_KEY -ErrorAction SilentlyContinue`; otherwise it overrides the key in `.env`.
+- Tests: `$env:HF_HUB_OFFLINE='1'; .\\.venv\\Scripts\\python.exe -m pytest -m "not gemini"` (109 passed; excludes live API tests; uses cached embedding model).
 - Gemini check: `.venv\\Scripts\\python.exe scripts/check_gemini.py`.
 - Backend: not implemented yet.
 - Frontend: not implemented yet.
