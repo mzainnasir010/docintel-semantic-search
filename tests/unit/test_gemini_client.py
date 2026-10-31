@@ -25,6 +25,7 @@ def settings() -> Settings:
         gemini_model="gemini-test",
         llm_temperature=0.35,
         llm_max_output_tokens=128,
+        llm_thinking_level="low",
     )
 
 
@@ -54,6 +55,7 @@ def test_generate_builds_configured_request_and_extracts_text() -> None:
     assert b"test-key" not in request.content
     assert request.read().decode().find('"temperature":0.35') >= 0
     assert b'"maxOutputTokens":128' in request.content
+    assert b'"thinkingLevel":"low"' in request.content
 
 
 def test_stream_yields_sse_text_chunks() -> None:

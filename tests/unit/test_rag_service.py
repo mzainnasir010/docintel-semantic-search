@@ -66,6 +66,8 @@ def test_prompt_has_grounding_instruction_labeled_context_and_question() -> None
 
     assert "Answer using ONLY the supplied CONTEXT" in built.text
     assert "Do not use outside knowledge" in built.text
+    assert "MUST include at least one exact source label" in built.text
+    assert "The documented value is 42 [S1]." in built.text
     assert "reply exactly" in built.text
     assert "[S1] document=api.pdf; page=4; section=Overview" in built.text
     assert "[S2] document=guide.docx; page=2; section=Overview" in built.text

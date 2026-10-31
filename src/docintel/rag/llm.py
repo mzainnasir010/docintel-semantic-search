@@ -154,6 +154,9 @@ class GeminiClient:
             "generationConfig": {
                 "temperature": self.settings.llm_temperature,
                 "maxOutputTokens": self.settings.llm_max_output_tokens,
+                "thinkingConfig": {
+                    "thinkingLevel": self.settings.llm_thinking_level
+                },
             },
         }
 

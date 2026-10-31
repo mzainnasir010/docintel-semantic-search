@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     min_similarity: float = 0.25
     llm_temperature: float = 0.1
     llm_max_output_tokens: int = 128
+    llm_thinking_level: str = "low"
     rag_prompt_char_budget: int = 12000
     api_host: str = "127.0.0.1"
     api_port: int = 8000
