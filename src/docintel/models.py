@@ -66,6 +66,38 @@ class IndexedDocument(BaseModel):
     pages: list[int] = Field(default_factory=list)
 
 
+class IndexFailure(BaseModel):
+    """Per-file indexing failure with a stable document identity when possible."""
+
+    doc_id: str
+    file_name: str
+    reason: str
+
+
+class IndexProgress(BaseModel):
+    """Snapshot emitted by the indexing pipeline progress callback."""
+
+    current_file: str
+    stage: str
+    percent: float = Field(ge=0.0, le=100.0)
+    indexed: int = Field(ge=0)
+    skipped: int = Field(ge=0)
+    failed: int = Field(ge=0)
+    chunks_indexed: int = Field(ge=0)
+
+
+class IndexRunSummary(BaseModel):
+    """Counts and timing for one complete indexing run."""
+
+    run_id: str
+    started_at: datetime
+    elapsed_seconds: float = Field(ge=0.0)
+    indexed: int = Field(ge=0)
+    skipped: int = Field(ge=0)
+    failed: list[IndexFailure] = Field(default_factory=list)
+    chunks_indexed: int = Field(ge=0)
+
+
 class IngestionSummary(BaseModel):
     """Outcome of a batch ingestion run, including all extracted pages."""
 

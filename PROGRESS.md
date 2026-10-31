@@ -1,9 +1,9 @@
 # PROGRESS
 
 ## NEXT STEP
-- Step ID and title: Step 4.3 - Indexing pipeline orchestrator
-- Exactly what to do next: In `indexing/`, implement `index_files(paths, progress_callback)` to run ingest with per-file error boundaries → preprocess → chunk → batch embed → store. Report current file, stage, percent, and counts through the callback. Skip documents already indexed with identical content by `doc_id`, continue past failures, and return indexed/skipped/failed reasons/chunk counts/elapsed time. Implement `index_directory(path)`, record run time, and add `scripts/index_corpus.py` for `data/sample_docs`. Add integration tests for mixed good/bad files, idempotent second run, monotonically called progress callback, and failure reporting; run the script on the real corpus once and record timing.
-- Files likely to be touched: `src/docintel/indexing/`, `scripts/index_corpus.py`, `src/docintel/models.py`, `tests/integration/`.
+- Step ID and title: Step 5.1 - Search service
+- Exactly what to do next: In `search/`, implement `SearchService.search(query, k, min_similarity, doc_filter)` to embed the query, search the vector store, and return descending-similarity results with chunk text, document name/ID, page, section, chunk ID, similarity, and rank. Apply the minimum similarity threshold and return an empty result with a relevance flag if no result passes. Validate empty queries and k bounds. Add `scripts/search_cli.py` for manual testing. Test ordering, threshold, empty index, empty query, and a corpus integration case where a paraphrased query retrieves the expected document in top results.
+- Files likely to be touched: `src/docintel/search/`, `scripts/search_cli.py`, `src/docintel/config.py`, `tests/unit/`, `tests/integration/`.
 - Pending user input or blockers: None.
 
 ## Current state summary
@@ -14,7 +14,7 @@
 - Gemini `gemini-3.8-flash` is configured and live-verified using the ignored project-root `.env`; the key is not recorded in Git or progress notes.
 - Sentence-transformers model loads with embedding dimension 384.
 - Corpus: 9 redistributable Python docs (4 TXT, 3 PDF, 2 DOCX), each attributed; `SOURCES.md` and PSF license included.
-- Current backend regression suite: 69 passed, 0 failed, 1 live Gemini test deselected (`pytest -m "not gemini"`).
+- Current backend regression suite: 71 passed, 0 failed, 1 live Gemini test deselected (`pytest -m "not gemini"`).
 - GitHub destination was supplied by the user; push is deferred until the project is complete.
 
 ## Step log
@@ -31,6 +31,7 @@
 | 3.2 | Evaluation question set (external review) | done | 2026-10-31 | 40 unit passed / 10 integration passed | User reviewed/approved six questions and provided corrections for Q-028 and Q-016. Programmatic source audit confirmed Q-010 wording and found `Path.chmod()` / `Path.lchmod()` in pathlib, so invalid unanswerable Q-031 was removed. Final set has 29 questions, 4 unanswerable, and 6 paraphrased. Schema and corpus evidence tests pass; full regression `pytest -m "not gemini"`: 50 passed, 1 deselected. Commit: `step 3.2: Evaluation question set`. |
 | 4.1 | Embedder | done | 2026-10-31 | 49 unit passed / 11 integration passed | Added lazy shared SentenceTransformer loading, GPU/CPU selection, configurable batch encoding, normalized document/query vectors, dimension/model metadata, and shape validation. Unit coverage includes deterministic batching and actual vacation/leave semantic sanity; integration embeds ingested corpus chunks. `pytest` offline with cached model: 60 passed, 1 live Gemini test deselected. Commit: `step 4.1: Embedder`. |
 | 4.2 | Vector store (ChromaDB) | done | 2026-10-31 | 57 unit passed / 12 integration passed | Added persistent Chroma cosine collection with stable-ID upserts, filtered ranked search, similarity scores, document listing, deletion/reset, complete chunk metadata, and embedding-model mismatch validation. Tests verify metadata round-trip, idempotency, persistence across store recreation, and end-to-end corpus search. `pytest` offline with cached model: 69 passed, 1 deselected. Commit: `step 4.2: Vector store (ChromaDB)`. |
+| 4.3 | Indexing pipeline orchestrator | done | 2026-10-31 | 57 unit passed / 14 integration passed | Added per-file ingest/preprocess/chunk/embed/store orchestration, monotonic structured progress, idempotent content-ID skips, per-file errors, directory indexing, run summaries and ignored JSONL timing log. Added `scripts/index_corpus.py`. Actual corpus run: 9 documents indexed, 472 chunks, 0 failures, 31.75 seconds. Full regression: 71 passed, 1 deselected. Commit: `step 4.3: Indexing pipeline orchestrator`. |
 
 ## Decisions made
 - Project name: `docintel` is the temporary package name until Step 8.1 selects the final brand.
@@ -50,7 +51,7 @@
 
 ## How to run (kept current)
 - Setup: `python -m venv .venv`; `.\\.venv\\Scripts\\Activate.ps1`; `python -m pip install -r requirements.txt`.
-- Tests: `$env:HF_HUB_OFFLINE='1'; .\\.venv\\Scripts\\python.exe -m pytest -m "not gemini"` (69 passed; excludes the separate live API test; uses cached embedding model).
+- Tests: `$env:HF_HUB_OFFLINE='1'; .\\.venv\\Scripts\\python.exe -m pytest -m "not gemini"` (71 passed; excludes the separate live API test; uses cached embedding model).
 - Gemini check: `.venv\\Scripts\\python.exe scripts/check_gemini.py`.
 - Backend: not implemented yet.
 - Frontend: not implemented yet.
