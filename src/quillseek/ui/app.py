@@ -15,6 +15,11 @@ from quillseek.ui.api_client import (
     BackendAPIError,
     BackendError,
 )
+from quillseek.ui.formatting import (
+    format_answer,
+    format_search_results,
+    format_sources,
+)
 from quillseek.ui.theme import THEME
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -123,12 +128,41 @@ def build_app(client: APIClient | None = None) -> gr.Blocks:
                 clear_status = gr.Markdown()
 
             with gr.Tab("Search", id="search"):
-                gr.Markdown("## Search\nSearch your indexed documents and inspect matching passages.")
-                gr.Markdown("Search controls will be available in the next build step.", elem_classes=["empty-state"])
+                gr.Markdown("## Search\nFind matching passages and inspect where they came from.")
+                search_query = gr.Textbox(
+                    label="Search your documents",
+                    placeholder="For example: How does asyncio support asynchronous I/O?",
+                    lines=2,
+                )
+                with gr.Row():
+                    search_k = gr.Slider(1, 20, value=5, step=1, label="Results to show (K)")
+                    search_button = gr.Button("Search documents", variant="primary")
+                search_status = gr.Markdown()
+                search_results = gr.HTML()
 
             with gr.Tab("Ask", id="ask"):
-                gr.Markdown("## Ask your documents\nGet a concise answer grounded in your indexed sources.")
-                gr.Markdown("Question answering controls will be available in the next build step.", elem_classes=["empty-state"])
+                gr.Markdown("## Ask your documents\nAnswers are grounded in your index and include sources you can inspect.")
+                question = gr.Textbox(
+                    label="Your question",
+                    placeholder="Ask a question answered by the indexed documents",
+                    lines=2,
+                )
+                gr.Markdown("**Try an example**")
+                examples = [
+                    "What syntax does asyncio use for concurrent Python code?",
+                    "Which function converts Python objects into JSON text?",
+                    "Which pathlib class is usually the right starting choice for a platform-native path?",
+                    "How can code reuse a function defined in another Python file?",
+                ]
+                with gr.Row():
+                    example_buttons = [gr.Button(value, size="sm") for value in examples]
+                ask_k = gr.Slider(1, 20, value=5, step=1, label="Sources to retrieve (K)")
+                ask_button = gr.Button("Ask Quillseek", variant="primary")
+                ask_status = gr.Markdown()
+                answer_panel = gr.HTML()
+                latency = gr.Markdown()
+                gr.Markdown("### Sources")
+                sources_panel = gr.HTML()
 
         gr.HTML(
             f"""<footer class="qs-footer">
@@ -167,12 +201,14 @@ def build_app(client: APIClient | None = None) -> gr.Blocks:
             return message, *refresh_documents()
 
         def index_documents():
+            rows, empty, choices = refresh_documents()
+            yield "Submitting indexing job…", 0, rows, empty, choices, gr.update(interactive=False)
             try:
                 job = api.start_index()
                 job_id = job["job_id"]
             except (BackendError, KeyError) as error:
                 rows, empty, choices = refresh_documents()
-                yield f"Indexing could not start: {html.escape(str(error))}", 0, rows, empty, choices
+                yield f"Indexing could not start: {html.escape(str(error))}", 0, rows, empty, choices, gr.update(interactive=True)
                 return
 
             finished = False
@@ -182,7 +218,7 @@ def build_app(client: APIClient | None = None) -> gr.Blocks:
                     status = api.index_status(job_id)
                 except BackendError as error:
                     rows, empty, choices = refresh_documents()
-                    yield f"Could not read indexing progress: {html.escape(str(error))}", status.get("percent", 0), rows, empty, choices
+                    yield f"Could not read indexing progress: {html.escape(str(error))}", status.get("percent", 0), rows, empty, choices, gr.update(interactive=True)
                     return
                 failed = status.get("failed", [])
                 message = (
@@ -193,8 +229,8 @@ def build_app(client: APIClient | None = None) -> gr.Blocks:
                 for failure in failed:
                     message += f"\n\n- {html.escape(failure.get('file_name', 'File'))}: {html.escape(failure.get('reason', 'Indexing failed'))}"
                 rows, empty, choices = refresh_documents()
-                yield message, status.get("percent", 0), rows, empty, choices
                 finished = status.get("finished", False)
+                yield message, status.get("percent", 0), rows, empty, choices, gr.update(interactive=finished)
                 if not finished:
                     time.sleep(0.5)
 
@@ -219,6 +255,50 @@ def build_app(client: APIClient | None = None) -> gr.Blocks:
                 message = f"Clear failed: {html.escape(str(error))}"
             return message, gr.update(value=False), *refresh_documents()
 
+        def search_documents(query, k):
+            yield (
+                '<div class="qs-loading"><span class="qs-loading-dot"></span>Searching your index…</div>',
+                "",
+                gr.update(interactive=False),
+            )
+            try:
+                result = api.search(query, int(k))
+                count = len(result.get("results", []))
+                message = f"Found {count} relevant passage(s)." if result.get("is_relevant") else "No passage met the relevance threshold."
+                yield format_search_results(result), message, gr.update(interactive=True)
+            except BackendError as error:
+                yield "", f"Search failed: {html.escape(str(error))}", gr.update(interactive=True)
+
+        def ask_documents(query, k):
+            yield (
+                '<div class="qs-loading"><span class="qs-loading-dot"></span>Retrieving sources and generating a cited answer…</div>',
+                "",
+                "",
+                "",
+                gr.update(interactive=False),
+            )
+            try:
+                result = api.ask(query, int(k))
+                latency_message = (
+                    f"Retrieval: {float(result.get('retrieval_ms', 0)):.1f} ms · "
+                    f"Generation: {float(result.get('generation_ms', 0)):.1f} ms"
+                )
+                if result.get("refused") and not result.get("retrieved_chunks"):
+                    status_message = "No relevant documents are indexed yet. Add and index files in the Documents tab."
+                elif result.get("refused"):
+                    status_message = "The supplied passages do not contain enough information to answer."
+                else:
+                    status_message = "Answer grounded in the retrieved passages."
+                yield (
+                    format_answer(result),
+                    format_sources(result.get("sources", [])),
+                    latency_message,
+                    status_message,
+                    gr.update(interactive=True),
+                )
+            except BackendError as error:
+                yield "", "", "", f"Question failed: {html.escape(str(error))}", gr.update(interactive=True)
+
         demo.load(backend_status, outputs=health_status)
         demo.load(refresh_documents, outputs=[document_table, empty_state, delete_choice])
         upload_button.click(
@@ -228,7 +308,7 @@ def build_app(client: APIClient | None = None) -> gr.Blocks:
         )
         index_button.click(
             index_documents,
-            outputs=[index_status, progress, document_table, empty_state, delete_choice],
+            outputs=[index_status, progress, document_table, empty_state, delete_choice, index_button],
         )
         delete_button.click(
             delete_document,
@@ -240,6 +320,22 @@ def build_app(client: APIClient | None = None) -> gr.Blocks:
             inputs=clear_confirm,
             outputs=[clear_status, clear_confirm, document_table, empty_state, delete_choice],
         )
+        search_button.click(
+            search_documents,
+            inputs=[search_query, search_k],
+            outputs=[search_results, search_status, search_button],
+            show_progress="full",
+            concurrency_limit=1,
+        )
+        ask_button.click(
+            ask_documents,
+            inputs=[question, ask_k],
+            outputs=[answer_panel, sources_panel, latency, ask_status, ask_button],
+            show_progress="full",
+            concurrency_limit=1,
+        )
+        for example, button in zip(examples, example_buttons):
+            button.click(lambda value=example: value, outputs=question)
 
     return demo
 

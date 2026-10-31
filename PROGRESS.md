@@ -1,10 +1,10 @@
 # PROGRESS
 
 ## NEXT STEP
-- Step ID and title: Step 8.3 - Search and Ask tabs
-- Exactly what to do next: Implement the Search tab with query input, K slider, and ranked result cards showing rank, document, page/section, readable chunk text, and similarity score pill. Implement Ask as chat-style or single Q&A with an answer card visually distinct from source cards; show `[S1]` label, document/page/similarity, expandable snippet, exact refusal styling, latency, spinner/loading, disabled controls during requests, friendly API errors, and an empty-index state directing users to Documents. Add 3–4 example questions from the corpus. Add/test formatting helpers for result/source cards and refusal style; smoke test the full UI.
-- Files likely to be touched: `src/quillseek/ui/app.py`, `src/quillseek/ui/`, `tests/unit/`, `tests/integration/`.
-- Pending user input or blockers: None.
+- Step ID and title: Step 8.4 - Polish and UI end-to-end verification
+- Exactly what to do next: Review UI against PLAN.md section 9 and GROUND_TRUTH UI requirements: spacing, hover/focus, narrow-width responsiveness, contrast on brand colors, logos in header/footer, favicon, title, and console errors. Add a one-command launcher (`scripts/run_all.py`) or document a two-command flow. Check Playwright availability; if available, add browser flow upload → index → search → ask and save screenshots to `docs/screenshots/`. If unavailable, document screenshots as a user task for Step 10.2. Run either the end-to-end test or a manual checklist.
+- Files likely to be touched: `src/quillseek/ui/`, `scripts/run_all.py` or `README.md`, `docs/`, `tests/`.
+- Pending user input or blockers: None currently; Step 10.2 may require user screenshots if Playwright is unavailable.
 
 ## Current state summary
 - Step 0.1 scaffold is implemented; Python 3.11.9 is available.
@@ -14,7 +14,7 @@
 - Gemini `gemini-3.8-flash` is configured and live-verified using the ignored project-root `.env`; the key is not recorded in Git or progress notes.
 - Sentence-transformers model loads with embedding dimension 384.
 - Corpus: 9 redistributable Python docs (4 TXT, 3 PDF, 2 DOCX), each attributed; `SOURCES.md` and PSF license included.
-- Current regression suite: 141 passed, 0 failed, 11 live Gemini tests deselected (`pytest -m "not gemini"`). The Step 8.2 API-client integration and Gradio app smoke tests pass. Step 6.1 live Gemini client test passed after clearing a stale `GEMINI_API_KEY` process override; live grounding/API variants remain opt-in due the Gemini 429 observed in Step 6.3.
+- Current regression suite: 145 passed, 0 failed, 11 live Gemini tests deselected (`pytest -m "not gemini"`). The API-client integration and Gradio app smoke tests pass. Step 6.1 live Gemini client test passed after clearing a stale `GEMINI_API_KEY` process override; live grounding/API variants remain opt-in due the Gemini 429 observed in Step 6.3.
 - GitHub destination was supplied by the user; push is deferred until the project is complete.
 
 ## Step log
@@ -42,6 +42,7 @@
 | 7.2 | Background indexing jobs and end-to-end API test | done | 2026-10-31 | 6 unit passed / 6 non-live integration passed; 1 live API variant deselected | `POST /index` now returns HTTP 202 and a job ID while a single-worker background executor indexes. Progress and errors are lock-protected; simultaneous index jobs and resets during active indexing return 409; search/ask remain usable. Added a real-corpus upload/index/poll/search/ask TestClient path with stub LLM, concurrency/availability checks, a real Gemini API variant, and endpoint examples in `docs/api.md`. Targeted API tests: 12 passed. Full regression: 131 passed, 11 live cases deselected. Gemini live API variant not run because Gemini returned HTTP 429 during Step 6.3; test remains opt-in. Commit: `step 7.2: Background indexing jobs and end-to-end API test`. |
 | 8.1 | Brand identity: name, logo, theme | done | 2026-10-31 | 3 unit passed / 0 integration | Chose **Quillseek** (“quill” + “seek”), checked the exact name for existing products, and renamed the package from `docintel` to `quillseek` throughout code/tests/scripts/docs. Added README wordmark and truthful privacy note; light/dark logo and favicon SVGs; custom Gradio theme and responsive CSS using the required blue, white, and pink palette. XML/color, theme import, CSS, and exact token tests pass. Full regression: 134 passed, 11 live Gemini cases deselected. Commit: `step 8.1: Brand identity, logo and theme`. |
 | 8.2 | App shell and Documents tab | done | 2026-10-31 | 6 unit passed / 1 integration passed | Added `APIClient` with `BACKEND_URL`, upload/documents/index/status/delete/reset/search/ask calls, friendly network/API errors, and multipart upload. Built Gradio shell with persistent logo header/footer, backend/Gemini health, Documents/Search/Ask tabs, document table and empty state, multi-file upload, progress polling with failures/counts, delete and confirmed collection reset. Added `scripts/run_frontend.py`; theme/CSS are applied at launch per Gradio 6. API client unit tests, app construction smoke test, and TestClient end-to-end client integration pass. Full regression: 141 passed, 11 live Gemini cases deselected. Commit: `step 8.2: App shell and Documents tab`. |
+| 8.3 | Search and Ask tabs | done | 2026-10-31 | 4 unit passed / 0 new integration | Wired both tabs to backend-only APIClient calls. Search displays ranked document/page/section/text cards with similarity pills; Ask displays a separate cited answer, expandable source cards, refusal styling, latency, example corpus questions, and loading/disabled button states. Added safe formatting helpers that escape returned HTML. Reused Step 8.2 client-to-TestClient integration and full-app smoke tests. Full regression: 145 passed, 11 live Gemini cases deselected. Commit: `step 8.3: Search and Ask tabs`. |
 
 ## Decisions made
 - Project and package name: Quillseek (`quillseek`).
@@ -62,7 +63,7 @@
 ## How to run (kept current)
 - Setup: `python -m venv .venv`; `.\\.venv\\Scripts\\Activate.ps1`; `python -m pip install -r requirements.txt`.
 - If a Windows process environment variable `GEMINI_API_KEY` is stale, clear it in that PowerShell session with `Remove-Item Env:GEMINI_API_KEY -ErrorAction SilentlyContinue`; otherwise it overrides the key in `.env`.
-- Tests: `$env:HF_HUB_OFFLINE='1'; .\\.venv\\Scripts\\python.exe -m pytest -m "not gemini"` (141 passed; excludes all 11 live Gemini cases; uses cached embedding model).
+- Tests: `$env:HF_HUB_OFFLINE='1'; .\\.venv\\Scripts\\python.exe -m pytest -m "not gemini"` (145 passed; excludes all 11 live Gemini cases; uses cached embedding model).
 - Gemini check: `.venv\\Scripts\\python.exe scripts/check_gemini.py`.
 - Backend: not implemented yet.
 - Frontend: not implemented yet.
