@@ -1,7 +1,7 @@
 """Exercise all file loaders with shared document metadata models."""
 
-from docintel.ingestion import load_docx, load_pdf, load_txt
-from docintel.models import PageContent
+from quillseek.ingestion import load_docx, load_pdf, load_txt
+from quillseek.models import PageContent
 
 
 def test_all_loaders_return_compatible_page_content(pdf_factory, docx_factory, tmp_path) -> None:

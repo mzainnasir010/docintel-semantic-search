@@ -7,12 +7,12 @@ import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 
-from docintel.api import create_app
-from docintel.config import Settings
-from docintel.indexing import index_files
-from docintel.rag import RAGService
-from docintel.search import SearchService
-from docintel.vectorstore import ChromaVectorStore
+from quillseek.api import create_app
+from quillseek.config import Settings
+from quillseek.indexing import index_files
+from quillseek.rag import RAGService
+from quillseek.search import SearchService
+from quillseek.vectorstore import ChromaVectorStore
 
 
 class FakeEmbedder:

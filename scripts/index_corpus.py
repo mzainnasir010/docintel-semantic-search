@@ -13,7 +13,7 @@ if str(PROJECT_ROOT) not in sys.path:
 if str(PROJECT_SRC) not in sys.path:
     sys.path.insert(0, str(PROJECT_SRC))
 
-from docintel.indexing import index_files
+from quillseek.indexing import index_files
 from scripts.build_corpus import CORPUS_DIR, DOCUMENTS
 
 

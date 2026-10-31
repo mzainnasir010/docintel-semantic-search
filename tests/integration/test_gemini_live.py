@@ -4,7 +4,7 @@ import httpx
 import pytest
 from dotenv import dotenv_values
 
-from docintel.config import Settings
+from quillseek.config import Settings
 from scripts.check_gemini import check_gemini
 
 

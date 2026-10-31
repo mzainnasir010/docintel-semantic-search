@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
-from docintel.ingestion import iter_pdf_pages
-from docintel.preprocessing import BoilerplateReport, iter_preprocessed_pages
+from quillseek.ingestion import iter_pdf_pages
+from quillseek.preprocessing import BoilerplateReport, iter_preprocessed_pages
 
 
 def test_corpus_pdf_preprocessing_preserves_pages_and_document_text() -> None:

@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable
 
-from docintel.models import SearchResult
+from quillseek.models import SearchResult
 
 
 @dataclass(frozen=True)

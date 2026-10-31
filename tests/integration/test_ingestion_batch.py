@@ -1,6 +1,6 @@
 """Mixed batch ingestion keeps processing after individual file failures."""
 
-from docintel.ingestion import ingest_files
+from quillseek.ingestion import ingest_files
 import pymupdf
 
 

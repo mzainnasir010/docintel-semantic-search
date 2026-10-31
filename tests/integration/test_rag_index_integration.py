@@ -2,12 +2,12 @@
 
 from pathlib import Path
 
-from docintel.chunking import chunk_pages
-from docintel.embeddings import Embedder
-from docintel.ingestion import ingest_files
-from docintel.rag import RAGService
-from docintel.search import SearchService
-from docintel.vectorstore import ChromaVectorStore
+from quillseek.chunking import chunk_pages
+from quillseek.embeddings import Embedder
+from quillseek.ingestion import ingest_files
+from quillseek.rag import RAGService
+from quillseek.search import SearchService
+from quillseek.vectorstore import ChromaVectorStore
 
 
 class StubLLM:

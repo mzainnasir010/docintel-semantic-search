@@ -6,9 +6,9 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from docintel.api import create_app
-from docintel.config import Settings, get_settings
-from docintel.vectorstore import ChromaVectorStore
+from quillseek.api import create_app
+from quillseek.config import Settings, get_settings
+from quillseek.vectorstore import ChromaVectorStore
 
 
 @pytest.mark.gemini

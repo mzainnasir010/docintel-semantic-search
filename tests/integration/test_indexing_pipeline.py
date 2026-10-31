@@ -5,9 +5,9 @@ from pathlib import Path
 
 import numpy as np
 
-from docintel.indexing import index_directory, index_files
-from docintel.models import IndexProgress
-from docintel.vectorstore import ChromaVectorStore
+from quillseek.indexing import index_directory, index_files
+from quillseek.models import IndexProgress
+from quillseek.vectorstore import ChromaVectorStore
 
 
 class FakeEmbedder:

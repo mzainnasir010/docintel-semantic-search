@@ -89,7 +89,7 @@ Create exactly this layout (add files as needed, keep it modular):
 │   ├── run_eval.py
 │   └── results/
 ├── src/
-│   └── <package_name>/         # use the project name chosen in Step 8.1, or `docintel` until then
+│   └── <package_name>/         # use the project name chosen in Step 8.1, or `quillseek` until then
 │       ├── config.py
 │       ├── logging_config.py
 │       ├── models.py           # Pydantic/dataclass models (Document, Page, Chunk, SearchResult, ...)

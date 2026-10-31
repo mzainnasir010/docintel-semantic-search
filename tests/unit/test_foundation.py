@@ -2,8 +2,8 @@
 
 import logging
 
-from docintel.config import Settings
-from docintel.logging_config import configure_logging
+from quillseek.config import Settings
+from quillseek.logging_config import configure_logging
 
 
 def test_settings_load_defaults(monkeypatch) -> None:

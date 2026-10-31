@@ -2,8 +2,8 @@
 
 import pytest
 
-from docintel.config import get_settings
-from docintel.rag import GeminiClient
+from quillseek.config import get_settings
+from quillseek.rag import GeminiClient
 
 
 @pytest.mark.gemini

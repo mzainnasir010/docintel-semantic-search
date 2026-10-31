@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from docintel.config import get_settings
-from docintel.rag import REFUSAL, RAGService
+from quillseek.config import get_settings
+from quillseek.rag import REFUSAL, RAGService
 
 ROOT = Path(__file__).resolve().parents[2]
 QUESTIONS = json.loads((ROOT / "eval" / "questions.json").read_text(encoding="utf-8"))

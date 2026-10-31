@@ -1,4 +1,4 @@
-# DocIntel REST API
+# Quillseek REST API
 
 Start the backend with:
 

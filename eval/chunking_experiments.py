@@ -19,10 +19,10 @@ if str(PROJECT_ROOT) not in sys.path:
 if str(PROJECT_SRC) not in sys.path:
     sys.path.insert(0, str(PROJECT_SRC))
 
-from docintel.chunking import chunk_pages
-from docintel.embeddings import Embedder
-from docintel.ingestion import ingest_files
-from docintel.vectorstore import ChromaVectorStore
+from quillseek.chunking import chunk_pages
+from quillseek.embeddings import Embedder
+from quillseek.ingestion import ingest_files
+from quillseek.vectorstore import ChromaVectorStore
 from eval.metrics import RetrievalMetrics, mean_metrics, retrieval_metrics
 from scripts.build_corpus import CORPUS_DIR, DOCUMENTS
 

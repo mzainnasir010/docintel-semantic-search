@@ -1,20 +1,20 @@
 # PROGRESS
 
 ## NEXT STEP
-- Step ID and title: Step 8.1 - Brand identity: name, logo, theme
-- Exactly what to do next: Follow PLAN.md section 9. Choose a one-word project name, tell the user why, and proceed unless they object. Rename package/README titles accordingly. Create `assets/logo.svg` and `assets/favicon.svg` using only `#09318D`, `#FFFFFF`, and `#FD91CC`; provide light/dark variants if needed. Create `ui/theme.py` with a custom `gr.themes.Base` theme and `ui/styles.css` for header, footer, cards, buttons, score pills, source cards, answer card, empty states, responsive rules, and subtle transitions. Record the name and design tokens in `PROGRESS.md`. Test SVG XML validity, theme import, CSS availability, and exact brand-color constants.
-- Files likely to be touched: `src/docintel/`, `README.md`, `assets/`, `src/docintel/ui/`, `tests/`.
-- Pending user input or blockers: None; PLAN.md says choose autonomously unless the user objects.
+- Step ID and title: Step 8.2 - App shell and Documents tab
+- Exactly what to do next: Build `src/quillseek/ui/app.py` with Gradio Blocks, the brand theme, and CSS. The UI must call only the backend through `src/quillseek/ui/api_client.py` using `httpx` and `BACKEND_URL`; show friendly backend-down errors. Add a consistent header/footer with the brand logo/name/tagline, `/health` backend/Gemini status, internship credit, and truthful privacy note. Add Documents, Search, and Ask tabs; in this step implement Documents: multi-file upload (PDF/DOCX/TXT), a table of uploaded/indexed files (name/type/pages/chunks/status), indexing button with visible progress and status polling, per-file errors, delete action, confirmation before clearing the collection, and a friendly empty state. Add `scripts/run_frontend.py`. Test API client success/backend-down/error payloads, app construction, and client-to-TestClient integration where practical.
+- Files likely to be touched: `src/quillseek/ui/`, `scripts/run_frontend.py`, `tests/`.
+- Pending user input or blockers: None.
 
 ## Current state summary
 - Step 0.1 scaffold is implemented; Python 3.11.9 is available.
-- Package is `docintel`; configuration uses `pydantic-settings` and supports environment overrides.
+- Project and Python package are named **Quillseek** (`quillseek`); the name blends “quill” and “seek” to suggest finding answers in documents. Configuration uses `pydantic-settings` and supports environment overrides.
 - Console and rotating file logging are configured by `configure_logging`.
 - All requirements in `requirements.txt` are installed in `.venv`; `pip check` reports no broken requirements.
 - Gemini `gemini-3.8-flash` is configured and live-verified using the ignored project-root `.env`; the key is not recorded in Git or progress notes.
 - Sentence-transformers model loads with embedding dimension 384.
 - Corpus: 9 redistributable Python docs (4 TXT, 3 PDF, 2 DOCX), each attributed; `SOURCES.md` and PSF license included.
-- Current backend regression suite: 131 passed, 0 failed, 11 live Gemini tests deselected (`pytest -m "not gemini"`). Step 6.1 live Gemini client test passed after clearing a stale `GEMINI_API_KEY` process override. Live grounding and API variants are present; API live validation is deferred because the key hit HTTP 429 during Step 6.3.
+- Current backend regression suite: 134 passed, 0 failed, 11 live Gemini tests deselected (`pytest -m "not gemini"`). Step 6.1 live Gemini client test passed after clearing a stale `GEMINI_API_KEY` process override. Live grounding and API variants are present; API live validation is deferred because the key hit HTTP 429 during Step 6.3.
 - GitHub destination was supplied by the user; push is deferred until the project is complete.
 
 ## Step log
@@ -40,9 +40,10 @@
 | 6.3 | Grounding and refusal validation (live) | done with documented limitations | 2026-10-31 | 119 non-live passed / 10 live deselected; 2 of 8 live grounding cases passed | Added live checks for four approved answerable questions and all four corpus-unanswerable questions. Initial run: Q-001 and Q-014 passed; Q-004 returned an uncited answer, Q-019 timed out, and later requests hit HTTP 429. Tightened system prompt with mandatory citations and a concrete cited-answer/refusal example; set Gemini 3.8 thinking level to `low` to reduce latency. Retest of Q-004 could not evaluate the prompt change because Gemini returned 429. Checks remain enabled and strict; rerun after quota resets. Limitation and mitigation are explicit rather than weakening assertions. Full non-live regression: 119 passed, 10 live tests deselected. Commit: `step 6.3: Grounding and refusal validation`. |
 | 7.1 | FastAPI application and routes | done | 2026-10-31 | 6 unit passed / 4 integration passed | Added injectable FastAPI app and typed schemas for health, upload, documents, index/status, search, ask, and collection reset; safe validation/HTTP/citation/internal error responses; Gradio CORS; request logging; model health probe; file type/size checks, sanitized collision-safe storage, and `scripts/run_backend.py`. TestClient routes use temporary Chroma and a stub LLM; coverage includes every route, empty index refusal, bad/oversize upload, unknown job/document, and reset. First sandboxed TestClient attempt exposed Windows local socketpair sandbox hang; escalated run passed. Full regression: 129 passed, 10 live Gemini cases deselected. Commit: `step 7.1: FastAPI application and routes`. |
 | 7.2 | Background indexing jobs and end-to-end API test | done | 2026-10-31 | 6 unit passed / 6 non-live integration passed; 1 live API variant deselected | `POST /index` now returns HTTP 202 and a job ID while a single-worker background executor indexes. Progress and errors are lock-protected; simultaneous index jobs and resets during active indexing return 409; search/ask remain usable. Added a real-corpus upload/index/poll/search/ask TestClient path with stub LLM, concurrency/availability checks, a real Gemini API variant, and endpoint examples in `docs/api.md`. Targeted API tests: 12 passed. Full regression: 131 passed, 11 live cases deselected. Gemini live API variant not run because Gemini returned HTTP 429 during Step 6.3; test remains opt-in. Commit: `step 7.2: Background indexing jobs and end-to-end API test`. |
+| 8.1 | Brand identity: name, logo, theme | done | 2026-10-31 | 3 unit passed / 0 integration | Chose **Quillseek** (“quill” + “seek”), checked the exact name for existing products, and renamed the package from `docintel` to `quillseek` throughout code/tests/scripts/docs. Added README wordmark and truthful privacy note; light/dark logo and favicon SVGs; custom Gradio theme and responsive CSS using the required blue, white, and pink palette. XML/color, theme import, CSS, and exact token tests pass. Full regression: 134 passed, 11 live Gemini cases deselected. Commit: `step 8.1: Brand identity, logo and theme`. |
 
 ## Decisions made
-- Project name: `docintel` is the temporary package name until Step 8.1 selects the final brand.
+- Project and package name: Quillseek (`quillseek`).
 - LLM provider: Google Gemini Developer API over HTTPS with `httpx`; model `gemini-3.8-flash` selected and live-verified.
 - Embedding model: `sentence-transformers/all-MiniLM-L6-v2` (locked default from PLAN.md).
 - Chunk size/overlap/strategy: selected from Step 5.3 experiment (1500/0/recursive); similarity threshold remains 0.25. Gemini 3.8 generation uses thinking level `low`; the prompt requires exact source-label citations and includes a cited-answer example.
@@ -60,7 +61,7 @@
 ## How to run (kept current)
 - Setup: `python -m venv .venv`; `.\\.venv\\Scripts\\Activate.ps1`; `python -m pip install -r requirements.txt`.
 - If a Windows process environment variable `GEMINI_API_KEY` is stale, clear it in that PowerShell session with `Remove-Item Env:GEMINI_API_KEY -ErrorAction SilentlyContinue`; otherwise it overrides the key in `.env`.
-- Tests: `$env:HF_HUB_OFFLINE='1'; .\\.venv\\Scripts\\python.exe -m pytest -m "not gemini"` (131 passed; excludes all 11 live Gemini cases; uses cached embedding model).
+- Tests: `$env:HF_HUB_OFFLINE='1'; .\\.venv\\Scripts\\python.exe -m pytest -m "not gemini"` (134 passed; excludes all 11 live Gemini cases; uses cached embedding model).
 - Gemini check: `.venv\\Scripts\\python.exe scripts/check_gemini.py`.
 - Backend: not implemented yet.
 - Frontend: not implemented yet.

@@ -3,8 +3,8 @@
 import json
 from pathlib import Path
 
-from docintel.ingestion import load_docx, load_pdf, load_txt
-from docintel.preprocessing import clean_text
+from quillseek.ingestion import load_docx, load_pdf, load_txt
+from quillseek.preprocessing import clean_text
 
 
 def test_answerable_questions_have_evidence_on_their_cited_pages() -> None:

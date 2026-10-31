@@ -2,7 +2,7 @@
 
 import pytest
 
-from docintel.models import Chunk, SearchResult
+from quillseek.models import Chunk, SearchResult
 from eval.metrics import mean_metrics, retrieval_metrics
 
 

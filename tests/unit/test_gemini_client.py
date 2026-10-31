@@ -4,8 +4,8 @@ import httpx
 import pytest
 from pydantic import SecretStr
 
-from docintel.config import Settings
-from docintel.rag import (
+from quillseek.config import Settings
+from quillseek.rag import (
     APIError,
     GeminiClient,
     InvalidAPIKeyError,
@@ -122,8 +122,8 @@ def test_retryable_503_uses_bounded_backoff_then_returns_success(monkeypatch) ->
             return httpx.Response(503, json={"error": {"status": "UNAVAILABLE"}})
         return response("Recovered")
 
-    monkeypatch.setattr("docintel.rag.llm.time.sleep", waits.append)
-    monkeypatch.setattr("docintel.rag.llm.random.uniform", lambda _low, _high: 1.0)
+    monkeypatch.setattr("quillseek.rag.llm.time.sleep", waits.append)
+    monkeypatch.setattr("quillseek.rag.llm.random.uniform", lambda _low, _high: 1.0)
     with httpx.Client(transport=httpx.MockTransport(handler)) as http:
         client = GeminiClient(settings(), client=http, max_retries=3, retry_base_delay=0.25)
         assert client.generate("Retry me") == "Recovered"
@@ -140,7 +140,7 @@ def test_retryable_status_exhaustion_raises_typed_error(monkeypatch) -> None:
         calls += 1
         return httpx.Response(503, json={"error": {"status": "UNAVAILABLE"}})
 
-    monkeypatch.setattr("docintel.rag.llm.time.sleep", lambda _delay: None)
+    monkeypatch.setattr("quillseek.rag.llm.time.sleep", lambda _delay: None)
     with httpx.Client(transport=httpx.MockTransport(handler)) as http:
         with pytest.raises(ServiceUnavailableError):
             GeminiClient(settings(), client=http, max_retries=2).generate("Retry me")
@@ -163,7 +163,7 @@ def test_retry_after_header_controls_wait(monkeypatch) -> None:
             )
         return response("Ready")
 
-    monkeypatch.setattr("docintel.rag.llm.time.sleep", waits.append)
+    monkeypatch.setattr("quillseek.rag.llm.time.sleep", waits.append)
     with httpx.Client(transport=httpx.MockTransport(handler)) as http:
         assert GeminiClient(settings(), client=http).generate("Wait") == "Ready"
 

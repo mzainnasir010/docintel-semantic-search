@@ -1,6 +1,6 @@
 """Unit tests for structure-aware text cleaning."""
 
-from docintel.preprocessing import (
+from quillseek.preprocessing import (
     clean_text,
     collapse_whitespace,
     fix_hyphenation,

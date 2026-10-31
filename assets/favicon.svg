@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Quillseek icon</title>
+  <path d="M11 6h27l15 15v37H11z" fill="#FFFFFF" stroke="#09318D" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M38 7v15h14M20 31h19M20 39h13" fill="none" stroke="#09318D" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="42" cy="44" r="9" fill="#FFFFFF" stroke="#FD91CC" stroke-width="4"/>
+  <path d="m49 51 8 8" stroke="#FD91CC" stroke-width="4" stroke-linecap="round"/>
+</svg>

@@ -1,6 +1,6 @@
 """Unit tests for file routing and stable ingestion identities."""
 
-from docintel.ingestion import detect_file_type, stable_document_id
+from quillseek.ingestion import detect_file_type, stable_document_id
 
 
 def test_file_type_uses_signatures_and_supported_extensions(pdf_factory, tmp_path) -> None:
@@ -29,7 +29,7 @@ def test_stable_document_id_is_content_based_and_short(tmp_path) -> None:
 
 
 def test_ingestion_reports_unsupported_input_without_raising(tmp_path) -> None:
-    from docintel.ingestion import ingest_files
+    from quillseek.ingestion import ingest_files
 
     unsupported = tmp_path / "data.csv"
     unsupported.write_text("a,b", encoding="utf-8")

@@ -2,8 +2,8 @@
 
 import pytest
 
-from docintel.models import Chunk, SearchResponse, SearchResult
-from docintel.rag import (
+from quillseek.models import Chunk, SearchResponse, SearchResult
+from quillseek.rag import (
     REFUSAL,
     CitationValidationError,
     PromptBuilder,

@@ -4,9 +4,9 @@ from pathlib import Path
 
 import numpy as np
 
-from docintel.chunking import chunk_pages
-from docintel.embeddings import Embedder
-from docintel.ingestion import ingest_files
+from quillseek.chunking import chunk_pages
+from quillseek.embeddings import Embedder
+from quillseek.ingestion import ingest_files
 
 
 def test_corpus_chunks_and_query_embed_to_normalized_vectors() -> None:

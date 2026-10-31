@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 112" role="img" aria-labelledby="title">
+  <title id="title">Quillseek</title>
+  <g fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M24 13h45l22 22v61H24z" fill="#09318D"/>
+    <path d="M69 14v23h22M42 55h30M42 70h23"/>
+  </g>
+  <circle cx="81" cy="78" r="15" fill="#09318D" stroke="#FD91CC" stroke-width="7"/>
+  <path d="m92 89 11 11" stroke="#FD91CC" stroke-width="7" stroke-linecap="round"/>
+  <text x="126" y="77" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="48" font-weight="700" letter-spacing="-1.5">Quillseek</text>
+  <circle cx="373" cy="70" r="5" fill="#FD91CC"/>
+</svg>

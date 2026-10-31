@@ -3,8 +3,8 @@
 import numpy as np
 import pytest
 
-from docintel.embeddings import Embedder
-from docintel.embeddings import embedder as embedder_module
+from quillseek.embeddings import Embedder
+from quillseek.embeddings import embedder as embedder_module
 
 
 class FakeSentenceTransformer:

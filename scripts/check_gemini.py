@@ -13,7 +13,7 @@ PROJECT_SRC = Path(__file__).resolve().parents[1] / "src"
 if str(PROJECT_SRC) not in sys.path:
     sys.path.insert(0, str(PROJECT_SRC))
 
-from docintel.config import Settings, get_settings
+from quillseek.config import Settings, get_settings
 
 
 def build_gemini_request(

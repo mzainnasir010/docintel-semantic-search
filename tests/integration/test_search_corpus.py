@@ -2,11 +2,11 @@
 
 from pathlib import Path
 
-from docintel.chunking import chunk_pages
-from docintel.embeddings import Embedder
-from docintel.ingestion import ingest_files
-from docintel.search import SearchService
-from docintel.vectorstore import ChromaVectorStore
+from quillseek.chunking import chunk_pages
+from quillseek.embeddings import Embedder
+from quillseek.ingestion import ingest_files
+from quillseek.search import SearchService
+from quillseek.vectorstore import ChromaVectorStore
 
 
 def test_paraphrased_async_query_finds_asyncio_document_in_top_results(tmp_path) -> None:

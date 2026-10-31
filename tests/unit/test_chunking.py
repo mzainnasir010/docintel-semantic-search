@@ -4,14 +4,14 @@ from datetime import datetime, timezone
 
 import pytest
 
-from docintel.chunking import (
+from quillseek.chunking import (
     RecursiveChunker,
     SectionAwareChunker,
     SentenceChunker,
     chunk_pages,
     create_chunker,
 )
-from docintel.models import PageContent
+from quillseek.models import PageContent
 
 
 def _page(text: str, *, doc_id: str = "doc-1", page: int = 1, section=None):

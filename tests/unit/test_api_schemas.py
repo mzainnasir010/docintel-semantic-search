@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from docintel.api.schemas import QueryRequest
+from quillseek.api.schemas import QueryRequest
 
 
 def test_query_request_strips_surrounding_whitespace() -> None:

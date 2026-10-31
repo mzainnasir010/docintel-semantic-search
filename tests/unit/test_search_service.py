@@ -2,8 +2,8 @@
 
 import pytest
 
-from docintel.models import Chunk, SearchResult
-from docintel.search import SearchService
+from quillseek.models import Chunk, SearchResult
+from quillseek.search import SearchService
 
 
 def _result(chunk_id: str, similarity: float, rank: int = 1) -> SearchResult:
@@ -43,7 +43,7 @@ class FakeVectorStore:
 
 def test_search_sorts_descending_applies_threshold_and_assigns_ranks(monkeypatch) -> None:
     monkeypatch.setattr(
-        "docintel.search.service.get_settings",
+        "quillseek.search.service.get_settings",
         lambda: type("Settings", (), {"top_k": 5, "min_similarity": 0.25})(),
     )
     embedder = FakeEmbedder()

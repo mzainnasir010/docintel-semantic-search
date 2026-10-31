@@ -1,7 +1,7 @@
 """Unit tests for repeated header/footer removal and page-wise iteration."""
 
-from docintel.models import PageContent
-from docintel.preprocessing import BoilerplateReport, iter_preprocessed_pages
+from quillseek.models import PageContent
+from quillseek.preprocessing import BoilerplateReport, iter_preprocessed_pages
 
 
 def _page(number: int, text: str) -> PageContent:

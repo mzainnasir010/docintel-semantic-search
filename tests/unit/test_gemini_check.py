@@ -2,7 +2,7 @@
 
 from pydantic import SecretStr
 
-from docintel.config import Settings
+from quillseek.config import Settings
 from scripts.check_gemini import build_gemini_request, check_gemini
 
 

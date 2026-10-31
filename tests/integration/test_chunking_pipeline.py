@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
-from docintel.chunking import chunk_pages
-from docintel.ingestion import ingest_files
+from quillseek.chunking import chunk_pages
+from quillseek.ingestion import ingest_files
 
 
 def test_corpus_document_runs_through_ingest_preprocess_and_chunk() -> None:

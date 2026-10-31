@@ -1,4 +1,4 @@
-"""Start the DocIntel FastAPI backend with Uvicorn."""
+"""Start the Quillseek FastAPI backend with Uvicorn."""
 
 from __future__ import annotations
 
@@ -11,13 +11,13 @@ if str(PROJECT_SRC) not in sys.path:
 
 import uvicorn
 
-from docintel.config import get_settings
+from quillseek.config import get_settings
 
 
 def main() -> None:
     """Run the API using host and port from project configuration."""
     settings = get_settings()
-    uvicorn.run("docintel.api.app:app", host=settings.api_host, port=settings.api_port)
+    uvicorn.run("quillseek.api.app:app", host=settings.api_host, port=settings.api_port)
 
 
 if __name__ == "__main__":

@@ -2,7 +2,7 @@
 
 import logging
 
-from docintel.ingestion import (
+from quillseek.ingestion import (
     decode_text,
     get_pdf_creation_date,
     load_docx,
@@ -10,7 +10,7 @@ from docintel.ingestion import (
     load_txt,
     parse_pdf_creation_date,
 )
-from docintel.models import Chunk, DocumentRecord, PageContent, SearchResult
+from quillseek.models import Chunk, DocumentRecord, PageContent, SearchResult
 
 
 def test_pdf_loader_returns_one_record_per_page_and_creation_date(pdf_factory) -> None:

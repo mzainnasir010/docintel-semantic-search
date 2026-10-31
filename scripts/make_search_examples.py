@@ -13,7 +13,7 @@ if str(PROJECT_ROOT) not in sys.path:
 if str(PROJECT_SRC) not in sys.path:
     sys.path.insert(0, str(PROJECT_SRC))
 
-from docintel.search import SearchService
+from quillseek.search import SearchService
 
 QUERY_IDS = [
     "q-002", "q-005", "q-010", "q-016", "q-019", "q-022", "q-025", "q-028"

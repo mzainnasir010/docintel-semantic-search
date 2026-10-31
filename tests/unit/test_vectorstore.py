@@ -5,8 +5,8 @@ from datetime import datetime, timezone
 import numpy as np
 import pytest
 
-from docintel.models import Chunk
-from docintel.vectorstore import ChromaVectorStore, EmbeddingModelMismatchError
+from quillseek.models import Chunk
+from quillseek.vectorstore import ChromaVectorStore, EmbeddingModelMismatchError
 
 
 def _chunk(

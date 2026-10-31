@@ -2,10 +2,10 @@
 
 from pathlib import Path
 
-from docintel.chunking import chunk_pages
-from docintel.embeddings import Embedder
-from docintel.ingestion import ingest_files
-from docintel.vectorstore import ChromaVectorStore
+from quillseek.chunking import chunk_pages
+from quillseek.embeddings import Embedder
+from quillseek.ingestion import ingest_files
+from quillseek.vectorstore import ChromaVectorStore
 
 
 def test_ingested_corpus_chunks_are_searchable_from_persistent_store(tmp_path) -> None:
