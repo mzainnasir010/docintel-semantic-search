@@ -58,6 +58,8 @@ def test_runner_writes_retrieval_answer_and_refusal_metrics(tmp_path: Path) -> N
     )
     assert len(rows) == 2
     assert rows[0]["hit_at_3"] == 1.0
+    assert rows[0]["hit_at_10"] == 1.0
+    assert summary["retrieval"]["20"]["precision"] == 0.05
     assert rows[0]["grounding_valid"] is True
     assert rows[0]["answer_correct_proxy"] is True
     assert rows[1]["refusal_correct"] is True

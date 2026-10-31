@@ -27,6 +27,18 @@ Scores below cover the 25 answerable questions; unanswerable questions are evalu
 | Mean similarity of matching document/page chunks | 0.571 | 0.540 |
 | Mean retrieval latency | 50.8 ms | 31.1 ms |
 
+### Candidate retrieval-depth comparison
+
+As an offline improvement experiment, the same 25 answerable questions were measured at K=10 and K=20. The K=5 values above are the baseline. Relevance remains document-and-page based, so interpret this as gold-page coverage rather than exact answer-bearing chunks.
+
+| K | Hit@K | Precision@K | Recall@K | MRR | Mean similarity of matching chunks |
+|---:|---:|---:|---:|---:|---:|
+| 5 (baseline) | 0.920 | 0.600 | 0.900 | 0.890 | 0.540 |
+| 10 | 0.960 | 0.544 | 0.960 | 0.894 | 0.517 |
+| 20 | 1.000 | 0.416 | 1.000 | 0.896 | 0.502 |
+
+Increasing K recovers the expected page for Q-023 at rank 10 and Q-022 at rank 19. It also lowers precision and mean similarity, adding many off-target chunks. We keep the product and RAG default at **K=5**: the modest MRR gain does not establish that larger context helps generated answers, and Gemini answer quality could not be tested. The experiment is a measured trade-off, not evidence to raise the production default.
+
 The latest recorded full-corpus indexing run processed 9 documents and 238 chunks in 26.53 seconds. Retrieval latency is measured in one sequential run; K=3 and K=5 timings are not strictly comparable because of warm-up and runtime variation.
 
 **Interpretation limit:** page-level relevance is coarse. Some source files are represented as a single page, so any chunk from that file/page counts as relevant even if its text does not answer the query. The stack/queue case below demonstrates this directly. As a result, these retrieval scores are a useful document/page-location measure, not a verified measure of exact evidence relevance. A future improvement should score retrieved chunk text against the reviewed evidence spans in the question set.

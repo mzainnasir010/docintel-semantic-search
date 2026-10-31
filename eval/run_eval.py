@@ -29,6 +29,7 @@ from quillseek.search import SearchService
 PRICING_SOURCE = "https://ai.google.dev/gemini-api/docs/pricing"
 PRICING_CHECKED = "2026-10-31"
 _CITATION = re.compile(r"\[(S[^\]]*)\]")
+EVALUATION_K_VALUES = (3, 5, 10, 20)
 
 
 def pricing_for(model: str, run_date: date) -> tuple[float, float]:
@@ -75,7 +76,7 @@ def _evaluate_one(
     started = time.perf_counter()
     search_results: dict[int, list] = {}
     search_latency: dict[int, float] = {}
-    for k in (3, 5):
+    for k in EVALUATION_K_VALUES:
         tick = time.perf_counter()
         search_results[k] = search_service.search(question["question"], k=k).results
         search_latency[k] = (time.perf_counter() - tick) * 1000
@@ -88,12 +89,11 @@ def _evaluate_one(
         "expected_doc_name": question.get("expected_doc_name"),
         "expected_pages": json.dumps(question.get("expected_pages", [])),
         "expected_answer": question.get("expected_answer", ""),
-        "retrieval_k3_ms": round(search_latency[3], 3),
-        "retrieval_k5_ms": round(search_latency[5], 3),
+        **{f"retrieval_k{k}_ms": round(search_latency[k], 3) for k in EVALUATION_K_VALUES},
         "indexing_seconds_latest_run": index_seconds,
     }
     retrieved5 = search_results[5]
-    for k in (3, 5):
+    for k in EVALUATION_K_VALUES:
         results = search_results[k]
         row[f"retrieved_k{k}"] = json.dumps([
             {"rank": item.rank, "doc_name": item.chunk.doc_name, "page": item.chunk.page_number,
@@ -225,16 +225,16 @@ def _summarize(rows: list[dict[str, Any]], *, model: str, input_rate: float,
         "retrieval": {
             str(k): {field: average(f"{field}_at_{k}", answerable)
                      for field in ("hit", "precision", "recall", "mrr")}
-            for k in (3, 5)
+            for k in EVALUATION_K_VALUES
         },
         "mean_correct_similarity": {
-            str(k): average(f"mean_correct_similarity_at_{k}", answerable) for k in (3, 5)
+            str(k): average(f"mean_correct_similarity_at_{k}", answerable) for k in EVALUATION_K_VALUES
         },
         "answer_correct_proxy_rate": average("answer_correct_proxy", rows),
         "grounding_valid_rate": average("grounding_valid", rows),
         "refusal_correct_rate": average("refusal_correct", rows),
         "latency_ms_mean": {field: average(field, rows) for field in
-                             ("retrieval_ms", "generation_ms", "end_to_end_ms", "retrieval_k3_ms", "retrieval_k5_ms")},
+                             ("retrieval_ms", "generation_ms", "end_to_end_ms", *(f"retrieval_k{k}_ms" for k in EVALUATION_K_VALUES))},
         "indexing_seconds_latest_run": index_seconds,
         "token_usage": {
             "input_tokens": sum(row.get("input_tokens") or 0 for row in live_rag_rows),
@@ -271,12 +271,14 @@ def run_evaluation(
     previous: dict[str, dict[str, Any]] = {}
     if resume and results_path.exists():
         numeric_fields = {
-            "retrieval_k3_ms", "retrieval_k5_ms", "retrieval_ms", "generation_ms",
+            *(f"retrieval_k{k}_ms" for k in EVALUATION_K_VALUES), "retrieval_ms", "generation_ms",
             "end_to_end_ms", "input_tokens", "output_tokens", "total_tokens",
             "estimated_paid_tier_cost_usd", "indexing_seconds_latest_run", "hit_at_3",
             "hit_at_5", "precision_at_3", "precision_at_5", "recall_at_3",
             "recall_at_5", "mrr_at_3", "mrr_at_5", "mean_correct_similarity_at_3",
-            "mean_correct_similarity_at_5", "key_fact_coverage",
+            "mean_correct_similarity_at_5", "hit_at_10", "hit_at_20", "precision_at_10",
+            "precision_at_20", "recall_at_10", "recall_at_20", "mrr_at_10", "mrr_at_20",
+            "mean_correct_similarity_at_10", "mean_correct_similarity_at_20", "key_fact_coverage",
         }
         bool_fields = {"refused", "grounding_valid", "refusal_correct", "answer_correct_proxy"}
         with results_path.open("r", encoding="utf-8", newline="") as handle:

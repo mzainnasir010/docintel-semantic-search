@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-31T15:25:05.032582+00:00",
+  "generated_at": "2026-10-31T15:36:39.716443+00:00",
   "pricing_checked": "2026-10-31",
   "pricing_source": "https://ai.google.dev/gemini-api/docs/pricing",
   "pricing_tier": "Gemini Developer API Standard paid-tier list pricing; free-tier eligibility is unknown",
@@ -24,11 +24,25 @@
       "precision": 0.6,
       "recall": 0.9,
       "mrr": 0.89
+    },
+    "10": {
+      "hit": 0.96,
+      "precision": 0.544,
+      "recall": 0.96,
+      "mrr": 0.894
+    },
+    "20": {
+      "hit": 1.0,
+      "precision": 0.416,
+      "recall": 1.0,
+      "mrr": 0.8961052631578947
     }
   },
   "mean_correct_similarity": {
     "3": 0.5711784051223234,
-    "5": 0.5403685516637304
+    "5": 0.5403685516637304,
+    "10": 0.517092239504887,
+    "20": 0.5019286006733085
   },
   "answer_correct_proxy_rate": null,
   "grounding_valid_rate": null,
@@ -36,9 +50,11 @@
   "latency_ms_mean": {
     "retrieval_ms": null,
     "generation_ms": null,
-    "end_to_end_ms": 82.13758620689656,
-    "retrieval_k3_ms": 50.80055172413793,
-    "retrieval_k5_ms": 31.099999999999998
+    "end_to_end_ms": 123.77862068965517,
+    "retrieval_k3_ms": 49.01793103448276,
+    "retrieval_k5_ms": 23.207896551724136,
+    "retrieval_k10_ms": 24.48696551724138,
+    "retrieval_k20_ms": 26.623310344827587
   },
   "indexing_seconds_latest_run": 26.527852299972437,
   "token_usage": {
