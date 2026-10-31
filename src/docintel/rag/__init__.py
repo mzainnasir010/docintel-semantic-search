@@ -11,6 +11,8 @@ from .llm import (
     LLMTimeoutError,
     NetworkError,
 )
+from .prompt import REFUSAL, BuiltPrompt, PromptBuilder, PromptSource
+from .service import CitationValidationError, RAGResponse, RAGService, RAGSource
 
 __all__ = [
     "APIError",
@@ -22,4 +24,12 @@ __all__ = [
     "ServiceUnavailableError",
     "LLMTimeoutError",
     "NetworkError",
+    "REFUSAL",
+    "BuiltPrompt",
+    "PromptBuilder",
+    "PromptSource",
+    "CitationValidationError",
+    "RAGResponse",
+    "RAGService",
+    "RAGSource",
 ]
