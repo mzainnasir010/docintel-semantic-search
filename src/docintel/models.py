@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field
 
 
 class DocumentRecord(BaseModel):
@@ -15,11 +15,12 @@ class DocumentRecord(BaseModel):
     doc_id: str
     doc_name: str
     source_path: str
-    file_type: Literal["pdf", "docx", "txt"]
+    file_type: Literal["pdf", "docx", "txt", "unsupported"]
     num_pages: int = Field(ge=0)
     created_at: datetime | None = None
     ingested_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     status: Literal["pending", "indexed", "failed"] = "pending"
+    error_message: str | None = None
 
 
 class PageContent(BaseModel):
@@ -51,4 +52,14 @@ class SearchResult(BaseModel):
     chunk: Chunk
     similarity: float = Field(ge=0.0, le=1.0)
     rank: int = Field(ge=1)
+
+
+class IngestionSummary(BaseModel):
+    """Outcome of a batch ingestion run, including all extracted pages."""
+
+    succeeded: int = Field(ge=0)
+    failed: list[DocumentRecord] = Field(default_factory=list)
+    documents: list[DocumentRecord] = Field(default_factory=list)
+    pages: list[PageContent] = Field(default_factory=list)
+    page_counts: dict[str, int] = Field(default_factory=dict)
 
