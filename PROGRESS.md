@@ -1,9 +1,9 @@
 # PROGRESS
 
 ## NEXT STEP
-- Step ID and title: Step 5.1 - Search service
-- Exactly what to do next: In `search/`, implement `SearchService.search(query, k, min_similarity, doc_filter)` to embed the query, search the vector store, and return descending-similarity results with chunk text, document name/ID, page, section, chunk ID, similarity, and rank. Apply the minimum similarity threshold and return an empty result with a relevance flag if no result passes. Validate empty queries and k bounds. Add `scripts/search_cli.py` for manual testing. Test ordering, threshold, empty index, empty query, and a corpus integration case where a paraphrased query retrieves the expected document in top results.
-- Files likely to be touched: `src/docintel/search/`, `scripts/search_cli.py`, `src/docintel/config.py`, `tests/unit/`, `tests/integration/`.
+- Step ID and title: Step 5.2 - Worked examples table
+- Exactly what to do next: Create `scripts/make_search_examples.py` to run 8-10 diverse real queries (including paraphrased queries and one weak/off-topic query) against the actual persistent index. Write `docs/SEARCH_EXAMPLES.md` as a table with columns for query, retrieved document/page, similarity, and correctness (`Correct`, `Partial`, or `Weak match`). Judge results against the expected sources in `eval/questions.json`; use only measured values. Add a test that runs the script and verifies the generated table columns and row count.
+- Files likely to be touched: `scripts/make_search_examples.py`, `docs/SEARCH_EXAMPLES.md`, `tests/`.
 - Pending user input or blockers: None.
 
 ## Current state summary
@@ -14,7 +14,7 @@
 - Gemini `gemini-3.8-flash` is configured and live-verified using the ignored project-root `.env`; the key is not recorded in Git or progress notes.
 - Sentence-transformers model loads with embedding dimension 384.
 - Corpus: 9 redistributable Python docs (4 TXT, 3 PDF, 2 DOCX), each attributed; `SOURCES.md` and PSF license included.
-- Current backend regression suite: 71 passed, 0 failed, 1 live Gemini test deselected (`pytest -m "not gemini"`).
+- Current backend regression suite: 86 passed, 0 failed, 1 live Gemini test deselected (`pytest -m "not gemini"`).
 - GitHub destination was supplied by the user; push is deferred until the project is complete.
 
 ## Step log
@@ -32,6 +32,7 @@
 | 4.1 | Embedder | done | 2026-10-31 | 49 unit passed / 11 integration passed | Added lazy shared SentenceTransformer loading, GPU/CPU selection, configurable batch encoding, normalized document/query vectors, dimension/model metadata, and shape validation. Unit coverage includes deterministic batching and actual vacation/leave semantic sanity; integration embeds ingested corpus chunks. `pytest` offline with cached model: 60 passed, 1 live Gemini test deselected. Commit: `step 4.1: Embedder`. |
 | 4.2 | Vector store (ChromaDB) | done | 2026-10-31 | 57 unit passed / 12 integration passed | Added persistent Chroma cosine collection with stable-ID upserts, filtered ranked search, similarity scores, document listing, deletion/reset, complete chunk metadata, and embedding-model mismatch validation. Tests verify metadata round-trip, idempotency, persistence across store recreation, and end-to-end corpus search. `pytest` offline with cached model: 69 passed, 1 deselected. Commit: `step 4.2: Vector store (ChromaDB)`. |
 | 4.3 | Indexing pipeline orchestrator | done | 2026-10-31 | 57 unit passed / 14 integration passed | Added per-file ingest/preprocess/chunk/embed/store orchestration, monotonic structured progress, idempotent content-ID skips, per-file errors, directory indexing, run summaries and ignored JSONL timing log. Added `scripts/index_corpus.py`. Actual corpus run: 9 documents indexed, 472 chunks, 0 failures, 31.75 seconds. Full regression: 71 passed, 1 deselected. Commit: `step 4.3: Indexing pipeline orchestrator`. |
+| 5.1 | Search service | done | 2026-10-31 | 71 unit passed / 15 integration passed | Added query embedding, document or metadata filters, k/threshold validation, descending cosine-score ranking and explicit relevance flag; results expose all required chunk/document fields. Added CLI and paraphrased corpus integration test. CLI smoke query retrieved `python_asyncio.txt` at rank 1 (similarity 0.675) from the real index. Full regression: 86 passed, 1 deselected. Commit: `step 5.1: Search service`. |
 
 ## Decisions made
 - Project name: `docintel` is the temporary package name until Step 8.1 selects the final brand.
@@ -51,7 +52,7 @@
 
 ## How to run (kept current)
 - Setup: `python -m venv .venv`; `.\\.venv\\Scripts\\Activate.ps1`; `python -m pip install -r requirements.txt`.
-- Tests: `$env:HF_HUB_OFFLINE='1'; .\\.venv\\Scripts\\python.exe -m pytest -m "not gemini"` (71 passed; excludes the separate live API test; uses cached embedding model).
+- Tests: `$env:HF_HUB_OFFLINE='1'; .\\.venv\\Scripts\\python.exe -m pytest -m "not gemini"` (86 passed; excludes the separate live API test; uses cached embedding model).
 - Gemini check: `.venv\\Scripts\\python.exe scripts/check_gemini.py`.
 - Backend: not implemented yet.
 - Frontend: not implemented yet.

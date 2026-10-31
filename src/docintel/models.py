@@ -56,6 +56,43 @@ class SearchResult(BaseModel):
     similarity: float = Field(ge=-1.0, le=1.0)
     rank: int = Field(ge=1)
 
+    @property
+    def text(self) -> str:
+        """Expose matched chunk text directly for search consumers."""
+        return self.chunk.text
+
+    @property
+    def doc_name(self) -> str:
+        """Expose the source document name directly."""
+        return self.chunk.doc_name
+
+    @property
+    def doc_id(self) -> str:
+        """Expose the stable source document ID directly."""
+        return self.chunk.doc_id
+
+    @property
+    def page_number(self) -> int:
+        """Expose the source page number directly."""
+        return self.chunk.page_number
+
+    @property
+    def section(self) -> str | None:
+        """Expose the source section directly."""
+        return self.chunk.section
+
+    @property
+    def chunk_id(self) -> str:
+        """Expose the stable chunk ID directly."""
+        return self.chunk.chunk_id
+
+
+class SearchResponse(BaseModel):
+    """Ranked search matches and an explicit relevance flag."""
+
+    results: list[SearchResult] = Field(default_factory=list)
+    is_relevant: bool
+
 
 class IndexedDocument(BaseModel):
     """Document summary stored in the persistent vector index."""
