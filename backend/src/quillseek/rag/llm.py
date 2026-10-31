@@ -160,15 +160,19 @@ class GeminiClient:
     def _payload(self, prompt: str) -> dict[str, Any]:
         if not prompt.strip():
             raise ValueError("prompt must not be empty")
+        generation_config: dict[str, Any] = {
+            "temperature": self.settings.llm_temperature,
+            "maxOutputTokens": self.settings.llm_max_output_tokens,
+        }
+        # Keep the default request identical in shape to Gemini's basic REST example.
+        # Thinking can be explicitly enabled through LLM_THINKING_LEVEL if needed.
+        if self.settings.llm_thinking_level.strip():
+            generation_config["thinkingConfig"] = {
+                "thinkingLevel": self.settings.llm_thinking_level
+            }
         return {
             "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {
-                "temperature": self.settings.llm_temperature,
-                "maxOutputTokens": self.settings.llm_max_output_tokens,
-                "thinkingConfig": {
-                    "thinkingLevel": self.settings.llm_thinking_level
-                },
-            },
+            "generationConfig": generation_config,
         }
 
     def _request(self, endpoint: str, payload: dict[str, Any]) -> httpx.Response:
@@ -190,7 +194,13 @@ class GeminiClient:
                 self._wait_before_retry(attempt)
                 continue
 
-            if response.status_code in {408, 429, 500, 502, 503, 504}:
+            retryable_status = response.status_code in {408, 500, 502, 503, 504}
+            # A quota 429 without Retry-After will not recover by retrying.
+            retryable_rate_limit = (
+                response.status_code == 429
+                and bool(response.headers.get("Retry-After"))
+            )
+            if retryable_status or retryable_rate_limit:
                 if attempt < self.max_retries:
                     delay = self._retry_delay(attempt, response)
                     time.sleep(delay)
@@ -237,7 +247,14 @@ class GeminiClient:
             if status == 404:
                 raise ModelUnavailableError("The configured Gemini model was not found.") from exc
             if status == 429:
-                raise RateLimitError("Gemini quota or rate limit was exceeded.") from exc
+                # Google's response identifies the exhausted quota without ever
+                # containing the API key. It is useful in local backend logs.
+                try:
+                    provider_message = str(response.json().get("error", {}).get("message", ""))
+                except (ValueError, AttributeError):
+                    provider_message = ""
+                suffix = f" Provider detail: {provider_message}" if provider_message else ""
+                raise RateLimitError(f"Gemini quota or rate limit was exceeded.{suffix}") from exc
             if status in (500, 502, 503, 504):
                 raise ServiceUnavailableError("The Gemini API is temporarily unavailable.") from exc
             raise APIError(f"Gemini API returned HTTP {status}.") from exc

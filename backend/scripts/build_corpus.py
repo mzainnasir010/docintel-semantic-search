@@ -11,7 +11,7 @@ import httpx
 import pymupdf as fitz
 from docx import Document as WordDocument
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 CORPUS_DIR = PROJECT_ROOT / "data" / "sample_docs"
 LICENSE_NAME = "Python Software Foundation License Version 2"
 LICENSE_URL = "https://docs.python.org/3.12/license.html"

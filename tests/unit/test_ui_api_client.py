@@ -5,7 +5,7 @@ from pathlib import Path
 import httpx
 import pytest
 
-from quillseek.ui.api_client import (
+from quillseek_frontend.api_client import (
     APIClient,
     BackendAPIError,
     BackendUnavailableError,

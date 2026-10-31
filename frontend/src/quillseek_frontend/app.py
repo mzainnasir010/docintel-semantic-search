@@ -10,25 +10,24 @@ from typing import Any
 
 import gradio as gr
 
-from quillseek.ui.api_client import (
+from quillseek_frontend.api_client import (
     APIClient,
     BackendAPIError,
     BackendError,
 )
-from quillseek.ui.formatting import (
+from quillseek_frontend.formatting import (
     format_answer,
     format_search_results,
     format_sources,
 )
-from quillseek.ui.theme import THEME
 
-ROOT = Path(__file__).resolve().parents[3]
+FRONTEND_ROOT = Path(__file__).resolve().parents[2]
 CSS_PATH = Path(__file__).with_name("styles.css")
 HEADERS = ["Document", "Type", "Pages", "Chunks", "Status"]
 
 
 def _image_data(asset_name: str) -> str:
-    data = (ROOT / "assets" / asset_name).read_bytes()
+    data = (FRONTEND_ROOT / "assets" / asset_name).read_bytes()
     encoded = base64.b64encode(data).decode("ascii")
     return f"data:image/svg+xml;base64,{encoded}"
 
@@ -68,101 +67,123 @@ def build_app(client: APIClient | None = None) -> gr.Blocks:
     api = client or APIClient()
     logo_header = _image_data("logo-dark.svg")
     logo_footer = _image_data("logo.svg")
-    CSS_PATH.read_text(encoding="utf-8")
-
+    # Gradio 6 applies presentation settings at launch time (see run_frontend.py).
     with gr.Blocks(title="Quillseek") as demo:
         gr.HTML(
             f"""<header class="qs-header">
-              <div class="qs-brand"><img src="{logo_header}" alt="Quillseek"></div>
-              <p class="qs-tagline">Find the answer in your documents, with sources you can check.</p>
+              <div class="qs-brand"><img src="{logo_header}" alt="Quillseek"><span class="qs-product-label">Document intelligence</span></div>
+              <p class="qs-tagline">Ask confidently. Check every source.</p>
             </header>"""
         )
         health_status = gr.Markdown("Checking backend status…", elem_id="backend-health")
 
-        with gr.Tabs():
-            with gr.Tab("Documents", id="documents"):
-                gr.Markdown("## Your document library\nUpload and index the files you want to search.")
-                with gr.Row(elem_classes=["qs-card"]):
-                    uploads = gr.File(
-                        label="Choose documents",
-                        file_count="multiple",
-                        file_types=[".pdf", ".docx", ".txt"],
-                        type="filepath",
-                    )
-                    upload_button = gr.Button("Upload files", variant="primary")
-                upload_status = gr.Markdown()
-                with gr.Row():
-                    index_button = gr.Button("Index pending documents", variant="primary")
-                    progress = gr.Slider(
-                        minimum=0,
-                        maximum=100,
-                        value=0,
-                        step=1,
-                        label="Indexing progress",
+        with gr.Tabs(elem_id="qs-workspace"):
+            # Asking is the primary task, so it is the first screen a new visitor sees.
+            with gr.Tab("Ask a question", id="ask"):
+                gr.HTML(
+                    """<section class="qs-ask-hero">
+                      <div>
+                        <p class="qs-kicker">Your knowledge workspace</p>
+                        <h1>Ask anything in your documents.</h1>
+                        <p>Get a direct answer with the exact passages that support it.</p>
+                      </div>
+                      <ol class="qs-flow" aria-label="How Quillseek works">
+                        <li><span>1</span><div><strong>Add</strong><small>Upload PDF, DOCX, or TXT</small></div></li>
+                        <li><span>2</span><div><strong>Index</strong><small>Prepare documents for search</small></div></li>
+                        <li class="is-active"><span>3</span><div><strong>Ask</strong><small>Get a sourced answer</small></div></li>
+                      </ol>
+                    </section>"""
+                )
+                with gr.Accordion("1. Add and index documents", open=True, elem_classes=["qs-documents-panel"]):
+                    gr.Markdown("Upload PDF, DOCX, or TXT files, then index them once before asking a question.")
+                    with gr.Row():
+                        uploads = gr.File(
+                            label="Choose documents",
+                            file_count="multiple",
+                            file_types=[".pdf", ".docx", ".txt"],
+                            type="filepath",
+                        )
+                        upload_button = gr.Button("Upload selected files", variant="primary")
+                    upload_status = gr.Markdown()
+                    with gr.Row():
+                        index_button = gr.Button("2. Index uploaded documents", variant="primary")
+                        progress = gr.Slider(
+                            minimum=0,
+                            maximum=100,
+                            value=0,
+                            step=1,
+                            label="Indexing progress",
+                            interactive=False,
+                        )
+                    index_status = gr.Markdown()
+                    document_table = gr.Dataframe(
+                        headers=HEADERS,
+                        datatype=["str", "str", "str", "str", "str"],
+                        value=[],
                         interactive=False,
+                        wrap=True,
+                        label="Your documents",
                     )
-                index_status = gr.Markdown()
-                document_table = gr.Dataframe(
-                    headers=HEADERS,
-                    datatype=["str", "str", "str", "str", "str"],
-                    value=[],
-                    interactive=False,
-                    wrap=True,
-                    label="Documents",
-                )
-                empty_state = gr.Markdown(
-                    "### Your library is empty\nUpload a PDF, DOCX, or TXT file to get started.",
-                    elem_classes=["empty-state"],
-                )
-                with gr.Row():
-                    delete_choice = gr.Dropdown(
-                        label="Indexed document to delete", choices=[], value=None
+                    empty_state = gr.Markdown(
+                        "### Your library is empty\nUpload a PDF, DOCX, or TXT file to get started.",
+                        elem_classes=["empty-state"],
                     )
-                    delete_button = gr.Button("Delete selected document")
-                delete_status = gr.Markdown()
-                with gr.Row():
-                    clear_confirm = gr.Checkbox(
-                        label="I understand this deletes all indexed documents and pending uploads"
-                    )
-                    clear_button = gr.Button("Clear collection", variant="stop")
-                clear_status = gr.Markdown()
+                    with gr.Row():
+                        delete_choice = gr.Dropdown(label="Indexed document to delete", choices=[], value=None)
+                        delete_button = gr.Button("Delete selected document")
+                    delete_status = gr.Markdown()
+                    with gr.Row():
+                        clear_confirm = gr.Checkbox(label="I understand this deletes all indexed documents and pending uploads")
+                        clear_button = gr.Button("Clear collection", variant="stop")
+                    clear_status = gr.Markdown()
+                with gr.Row(equal_height=False, elem_classes=["qs-ask-layout"]):
+                    with gr.Column(scale=7, elem_classes=["qs-query-surface"]):
+                        question = gr.Textbox(
+                            label="What would you like to know?",
+                            placeholder="Ask a question about your indexed documents...",
+                            lines=4,
+                            autofocus=True,
+                        )
+                        with gr.Row():
+                            ask_button = gr.Button("Ask Quillseek", variant="primary", elem_id="ask-button")
+                            ask_k = gr.Slider(1, 20, value=5, step=1, label="Sources to use")
+                        gr.Markdown("Try an example", elem_classes=["qs-helper-text"])
+                        examples = [
+                            "What syntax does asyncio use for concurrent Python code?",
+                            "Which function converts Python objects into JSON text?",
+                            "Which pathlib class is usually the right starting choice for a platform-native path?",
+                        ]
+                        with gr.Row(elem_classes=["qs-examples"]):
+                            example_buttons = [gr.Button(value, size="sm") for value in examples]
+                    with gr.Column(scale=3, elem_classes=["qs-trust-panel"]):
+                        gr.HTML(
+                            """<aside>
+                              <p class="qs-kicker">Grounded answers</p>
+                              <h2>No invented answers.</h2>
+                              <p>Quillseek uses only retrieved passages. Open each source to verify the answer.</p>
+                            </aside>"""
+                        )
+                ask_status = gr.Markdown()
+                answer_panel = gr.HTML(elem_id="answer-panel")
+                latency = gr.Markdown(elem_classes=["qs-latency"])
+                gr.Markdown("### Sources used")
+                sources_panel = gr.HTML()
 
-            with gr.Tab("Search", id="search"):
-                gr.Markdown("## Search\nFind matching passages and inspect where they came from.")
+            with gr.Tab("Search passages", id="search"):
+                gr.Markdown(
+                    "## Search passages\n"
+                    "Use this when you want to read the matching text yourself, without generating an answer."
+                )
                 search_query = gr.Textbox(
-                    label="Search your documents",
-                    placeholder="For example: How does asyncio support asynchronous I/O?",
+                    label="What are you looking for?",
+                    placeholder="Example: asynchronous I/O",
                     lines=2,
                 )
                 with gr.Row():
-                    search_k = gr.Slider(1, 20, value=5, step=1, label="Results to show (K)")
-                    search_button = gr.Button("Search documents", variant="primary")
+                    search_button = gr.Button("Find passages", variant="primary")
+                    search_k = gr.Slider(1, 20, value=5, step=1, label="Passages to show")
                 search_status = gr.Markdown()
                 search_results = gr.HTML()
-
-            with gr.Tab("Ask", id="ask"):
-                gr.Markdown("## Ask your documents\nAnswers are grounded in your index and include sources you can inspect.")
-                question = gr.Textbox(
-                    label="Your question",
-                    placeholder="Ask a question answered by the indexed documents",
-                    lines=2,
-                )
-                gr.Markdown("**Try an example**")
-                examples = [
-                    "What syntax does asyncio use for concurrent Python code?",
-                    "Which function converts Python objects into JSON text?",
-                    "Which pathlib class is usually the right starting choice for a platform-native path?",
-                    "How can code reuse a function defined in another Python file?",
-                ]
-                with gr.Row():
-                    example_buttons = [gr.Button(value, size="sm") for value in examples]
-                ask_k = gr.Slider(1, 20, value=5, step=1, label="Sources to retrieve (K)")
-                ask_button = gr.Button("Ask Quillseek", variant="primary")
-                ask_status = gr.Markdown()
-                answer_panel = gr.HTML()
-                latency = gr.Markdown()
-                gr.Markdown("### Sources")
-                sources_panel = gr.HTML()
 
         gr.HTML(
             f"""<footer class="qs-footer">

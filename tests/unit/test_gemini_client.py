@@ -162,6 +162,21 @@ def test_retryable_status_exhaustion_raises_typed_error(monkeypatch) -> None:
     assert calls == 3
 
 
+def test_quota_429_without_retry_after_is_not_retried() -> None:
+    calls = 0
+
+    def handler(_request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        return httpx.Response(429, json={"error": {"status": "RESOURCE_EXHAUSTED"}})
+
+    with httpx.Client(transport=httpx.MockTransport(handler)) as http:
+        with pytest.raises(RateLimitError):
+            GeminiClient(settings(), client=http, max_retries=3).generate("Test")
+
+    assert calls == 1
+
+
 def test_retry_after_header_controls_wait(monkeypatch) -> None:
     calls = 0
     waits = []

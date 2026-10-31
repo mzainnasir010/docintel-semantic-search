@@ -5,7 +5,7 @@ import pytest
 from dotenv import dotenv_values
 
 from quillseek.config import Settings
-from scripts.check_gemini import check_gemini
+from backend.scripts.check_gemini import check_gemini
 
 
 @pytest.mark.gemini

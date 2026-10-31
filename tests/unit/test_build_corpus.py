@@ -1,6 +1,6 @@
 """Unit tests for source-page text extraction."""
 
-from scripts.build_corpus import html_to_text
+from backend.scripts.build_corpus import html_to_text
 
 
 def test_html_to_text_preserves_content_and_removes_navigation() -> None:

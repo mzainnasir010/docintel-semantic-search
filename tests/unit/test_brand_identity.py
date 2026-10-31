@@ -3,7 +3,7 @@
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
-from quillseek.ui.theme import ACCENT, PRIMARY, THEME, WHITE
+from quillseek_frontend.theme import ACCENT, PRIMARY, THEME, WHITE
 
 ROOT = Path(__file__).resolve().parents[2]
 SVG_NAMESPACE = "{http://www.w3.org/2000/svg}"
@@ -17,7 +17,7 @@ def test_brand_color_constants_match_the_plan() -> None:
 
 
 def test_logo_and_favicon_are_valid_svg_using_only_brand_colors() -> None:
-    assets = ROOT / "assets"
+    assets = ROOT / "frontend" / "assets"
     for filename in ("logo.svg", "logo-dark.svg", "favicon.svg"):
         root = ET.parse(assets / filename).getroot()
         assert root.tag == f"{SVG_NAMESPACE}svg"
@@ -36,7 +36,7 @@ def test_custom_theme_imports_and_css_is_available() -> None:
     import gradio as gr
 
     assert isinstance(THEME, gr.themes.Base)
-    stylesheet = ROOT / "src" / "quillseek" / "ui" / "styles.css"
+    stylesheet = ROOT / "frontend" / "src" / "quillseek_frontend" / "styles.css"
     css = stylesheet.read_text(encoding="utf-8")
     assert "--qs-blue: #09318D" in css
     assert "--qs-pink: #FD91CC" in css

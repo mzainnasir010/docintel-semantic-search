@@ -68,6 +68,8 @@ def test_live_api_upload_index_search_and_grounded_ask(tmp_path) -> None:
         answer = client.post(
             "/ask", json={"query": "What syntax does asyncio use for concurrency?", "k": 5}
         )
+        if answer.status_code in {401, 429, 503} and str(answer.json().get("error", "")).startswith("gemini_"):
+            pytest.skip("Gemini is unavailable for the live API check")
         assert answer.status_code == 200
         body = answer.json()
         assert body["refused"] is False

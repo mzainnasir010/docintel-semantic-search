@@ -3,7 +3,7 @@
 from pydantic import SecretStr
 
 from quillseek.config import Settings
-from scripts.check_gemini import build_gemini_request, check_gemini
+from backend.scripts.check_gemini import build_gemini_request, check_gemini
 
 
 def test_build_gemini_request_uses_configured_model_and_prompt() -> None:
@@ -43,7 +43,7 @@ def test_check_gemini_sends_key_in_header_and_returns_reply(monkeypatch) -> None
         captured.update(url=url, headers=headers, json=json, timeout=timeout)
         return FakeResponse()
 
-    monkeypatch.setattr("scripts.check_gemini.httpx.post", fake_post)
+    monkeypatch.setattr("backend.scripts.check_gemini.httpx.post", fake_post)
     settings = Settings(
         _env_file=None,
         gemini_api_key=SecretStr("unit-test-key"),

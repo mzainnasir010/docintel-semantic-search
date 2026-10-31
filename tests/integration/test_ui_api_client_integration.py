@@ -10,7 +10,7 @@ from quillseek.config import Settings
 from quillseek.indexing import index_files
 from quillseek.rag import RAGService
 from quillseek.search import SearchService
-from quillseek.ui.api_client import APIClient
+from quillseek_frontend.api_client import APIClient
 from quillseek.vectorstore import ChromaVectorStore
 
 

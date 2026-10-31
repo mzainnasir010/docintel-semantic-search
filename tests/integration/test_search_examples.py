@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from quillseek.models import Chunk, SearchResponse, SearchResult
-from scripts.make_search_examples import generate_search_examples
+from backend.scripts.make_search_examples import generate_search_examples
 
 
 class FakeSearchService:

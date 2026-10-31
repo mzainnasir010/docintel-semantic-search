@@ -1,6 +1,6 @@
 """Formatting tests for inspectable search results, citations, and refusal states."""
 
-from quillseek.ui.formatting import format_answer, format_search_results, format_sources
+from quillseek_frontend.formatting import format_answer, format_search_results, format_sources
 
 
 def test_search_result_card_includes_rank_score_document_page_and_text() -> None:

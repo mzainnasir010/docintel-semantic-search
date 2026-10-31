@@ -16,4 +16,13 @@ Use the two-terminal launch flow in the README, then open `http://127.0.0.1:7860
 
 ## Screenshots requested for Step 10.2
 
-Capture the desktop Documents, Search results, and Ask answer with sources views, plus one narrow-width view. Save PNGs in `docs/screenshots/`. Keep sample content free of personal or confidential data.
+Capture each UI state as a separate PNG in `docs/screenshots/`, using these filenames:
+
+1. `01-documents-indexed.png` — Documents tab showing indexed sample documents.
+2. `02-indexing-progress.png` — Documents tab while indexing, with visible progress.
+3. `03-search-results-scores.png` — Search results showing ranked passages and similarity scores.
+4. `04-answer-with-sources.png` — Ask tab showing a successful answer and its source cards.
+5. `05-refusal.png` — Ask tab showing a refusal for a question the corpus cannot answer.
+6. `06-empty-state.png` — Documents tab before any document has been uploaded.
+
+Keep sample content free of personal or confidential data. A narrow-width screenshot is also useful for responsive review, but is additional to these six requested states.

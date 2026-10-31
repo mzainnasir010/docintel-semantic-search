@@ -4,7 +4,7 @@ Start the backend with:
 
 ```powershell
 Remove-Item Env:GEMINI_API_KEY -ErrorAction SilentlyContinue
-.\.venv\Scripts\python.exe scripts/run_backend.py
+.\.venv\Scripts\python.exe backend\scripts\run_backend.py
 ```
 
 The server uses `API_HOST` and `API_PORT` from `.env` (defaults: `127.0.0.1:8000`). Interactive OpenAPI docs are available at `/docs`; the JSON schema is at `/openapi.json`.
@@ -103,3 +103,5 @@ Errors use a consistent shape without stack traces:
 ```json
 {"error":"request_error","detail":"Document not found"}
 ```
+
+When the upstream Gemini service is rate-limited or unavailable, `/ask` returns HTTP 503 with the same safe error shape and `error` set to `gemini_unavailable`.

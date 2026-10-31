@@ -25,7 +25,9 @@ def test_evaluation_report_has_required_sections_and_cases() -> None:
         "Ambiguous questions",
         "Duplicate content",
         "Long-context issues",
-        "Answer correctness, refusal correctness, citation grounding",
+        "Aggregate answer correctness, generation latency, token usage, and model cost remain",
+        "## Targeted live Gemini validation",
+        "162 passed, 11 skipped",
     )
     for section in required:
         assert section in content
@@ -34,4 +36,5 @@ def test_evaluation_report_has_required_sections_and_cases() -> None:
 def test_report_declares_gemini_results_deferred_without_claiming_success() -> None:
     content = REPORT.read_text(encoding="utf-8")
     assert "Gemini generation was deliberately skipped" in content
-    assert "Correct refusal, hallucination, and grounding cannot be claimed" in content
+    assert "The 29-question CSV and summary remain retrieval-only" in content
+    assert "no aggregate live answer rate" in content

@@ -1,6 +1,6 @@
 """Integration check for launch-ready Gradio UI configuration."""
 
-from quillseek.ui.app import build_app
+from quillseek_frontend.app import build_app
 
 
 class EmptyClient:

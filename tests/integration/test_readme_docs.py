@@ -49,3 +49,11 @@ def test_readme_embeds_the_architecture_pipelines_and_vector_database() -> None:
         assert token in architecture
         assert token in readme
     assert "```mermaid" in readme
+
+
+def test_embedding_model_change_has_a_documented_full_reindex_procedure() -> None:
+    readme = README.read_text(encoding="utf-8")
+    guide = (ROOT / "docs" / "REINDEXING.md").read_text(encoding="utf-8")
+    assert "docs/REINDEXING.md" in readme
+    for required in ("CHROMA_PATH", "EMBEDDING_MODEL", "data/uploads/", "index_corpus.py"):
+        assert required in guide

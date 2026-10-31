@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.svg" alt="Quillseek" width="360">
+  <img src="frontend/assets/logo.svg" alt="Quillseek" width="360">
 </p>
 
 <p align="center">Find answers in your documents, with sources you can check.</p>
@@ -111,9 +111,9 @@ Copy `.env.example` to `.env`. It contains variable names and a safe API-key pla
 | `TOP_K` | `5` | Default number of search results/sources. |
 | `MIN_SIMILARITY` | `0.25` | Similarity threshold below which a result is not considered relevant. |
 | `LLM_TEMPERATURE` | `0.1` | Gemini generation temperature. |
-| `LLM_MAX_OUTPUT_TOKENS` | `128` | Maximum generated output-token setting. |
+| `LLM_MAX_OUTPUT_TOKENS` | `64` | Maximum generated output-token setting. |
 | `LLM_THINKING_LEVEL` | `low` | Gemini thinking level used by requests. |
-| `RAG_PROMPT_CHAR_BUDGET` | `12000` | Total character limit for the grounded prompt. |
+| `RAG_PROMPT_CHAR_BUDGET` | `1500` | Total character limit for the grounded prompt. |
 | `API_HOST` | `127.0.0.1` | Host used by backend and frontend launchers. |
 | `API_PORT` | `8000` | FastAPI/Uvicorn listening port. |
 | `BACKEND_URL` | `http://127.0.0.1:8000` | Base URL the frontend uses for API calls. |
@@ -121,24 +121,25 @@ Copy `.env.example` to `.env`. It contains variable names and a safe API-key pla
 | `LOG_LEVEL` | `INFO` | Console/file logging level. |
 
 Runtime data directories (`data/chroma/` and `data/uploads/`) and `.env` are ignored by Git.
+To change `EMBEDDING_MODEL`, follow the [full re-index procedure](docs/REINDEXING.md) so the persisted vectors match the new model.
 
 ## 8. Usage
 
 Open two PowerShell terminals in the project directory. Start the backend in terminal 1:
 
 ```powershell
-.\.venv\Scripts\python.exe scripts/run_backend.py
+.\.venv\Scripts\python.exe backend\scripts\run_backend.py
 ```
 
 Start the frontend in terminal 2:
 
 ```powershell
-.\.venv\Scripts\python.exe scripts/run_frontend.py
+.\.venv\Scripts\python.exe frontend\scripts\run_frontend.py
 ```
 
 Open `http://127.0.0.1:7860`. In **Documents**, upload supported files and select **Index pending documents**. Search the indexed library in **Search**, or ask a natural-language question in **Ask** and inspect its cited sources. The REST API is at `http://127.0.0.1:8000`; interactive API docs are at [`/docs`](http://127.0.0.1:8000/docs).
 
-To index the bundled corpus from a terminal, run `.\.venv\Scripts\python.exe scripts/index_corpus.py`. To test a search directly, run `.\.venv\Scripts\python.exe scripts/search_cli.py "How do pure paths differ from concrete paths?"`.
+To index the bundled corpus from a terminal, run `.\.venv\Scripts\python.exe backend\scripts\index_corpus.py`. To test a search directly, run `.\.venv\Scripts\python.exe backend\scripts\search_cli.py "How do pure paths differ from concrete paths?"`.
 
 Run the non-live suite (uses the cached embedding model):
 
@@ -148,7 +149,7 @@ Remove-Item Env:GEMINI_API_KEY -ErrorAction SilentlyContinue
 .\.venv\Scripts\python.exe -m pytest -m "not gemini"
 ```
 
-Live Gemini tests are marked `gemini` and need a working `.env` key, internet access, and available project quota. To run them, clear any stale process override and use `.\.venv\Scripts\python.exe -m pytest -m gemini`. To check a minimal real request, use `.\.venv\Scripts\python.exe scripts/check_gemini.py`.
+Live Gemini tests are marked `gemini` and need a working `.env` key, internet access, and available project quota. To run them, clear any stale process override and use `.\.venv\Scripts\python.exe -m pytest -m gemini`. To check a minimal real request, use `.\.venv\Scripts\python.exe backend\scripts\check_gemini.py`.
 
 For retrieval-only metrics without Gemini, run `.\.venv\Scripts\python.exe eval\run_eval.py --skip-rag`. When quota is available, resume answer-level evaluation with `.\.venv\Scripts\python.exe eval\run_eval.py --resume`.
 
@@ -175,9 +176,9 @@ The current retrieval run covers 25 answerable and 4 unanswerable reviewed quest
 | 10 | 0.960 | 0.544 | 0.960 | 0.894 |
 | 20 | 1.000 | 0.416 | 1.000 | 0.896 |
 
-K=5 remains the product default: larger candidate sets recovered two lower-ranked gold pages but reduced precision, and generated answer quality has not been measured. Chunking experiments selected recursive 1,500-character chunks with zero overlap: MRR 0.890 and Hit@5 0.920 in that experiment. Full per-question findings and deferred answer-level metrics are in [docs/EVALUATION.md](docs/EVALUATION.md); the chunk sweep is in [docs/CHUNKING_EXPERIMENTS.md](docs/CHUNKING_EXPERIMENTS.md).
+K=5 remains the product default: larger candidate sets recovered two lower-ranked gold pages but reduced precision, and full-dataset generated answer quality remains unmeasured. Chunking experiments selected recursive 1,500-character chunks with zero overlap: MRR 0.890 and Hit@5 0.920 in that experiment. Full per-question findings and targeted live checks are in [docs/EVALUATION.md](docs/EVALUATION.md); the chunk sweep is in [docs/CHUNKING_EXPERIMENTS.md](docs/CHUNKING_EXPERIMENTS.md).
 
-**Gemini answer, refusal, citation, token, and API-cost metrics are pending a working key/quota.** The current CSV labels these fields as deferred; they are not presented as passing or zero-cost results.
+**Full-corpus Gemini answer, refusal, citation, token, and API-cost metrics remain pending.** Targeted live tests verified representative grounded answers and refusals, but the 29-question CSV remains retrieval-only; its answer-level fields are labeled as deferred because the provider quota was exhausted before a full run.
 
 ## 11. Screenshots
 
@@ -188,13 +189,13 @@ Browser automation was unavailable during implementation, so no screenshots are 
 - The sample corpus covers Python documentation, not arbitrary enterprise policies or private company material.
 - PDF extraction quality depends on machine-readable text; scanned image-only documents need OCR, which is not implemented.
 - Page-level evaluation labels are coarse and can count irrelevant chunks from the same document/page as relevant.
-- Gemini generation quality, refusal behavior, citation grounding, token usage, and live answer costs remain unverified until a working API key and quota are available.
+- Gemini generation quality, refusal behavior, citation grounding, token usage, and live answer costs have not been measured across the full 29-question evaluation; the API requires internet access and is subject to project-specific rate limits.
 - The Gemini service requires internet access and is subject to project-specific rate limits. Retrieved passage text is sent to the configured provider for Ask requests.
 - The UI was not browser-automated; complete the manual responsive/console checks and capture screenshots before delivery.
 
 ## 13. Future Improvements
 
-- Re-run live RAG evaluation and inspect generated citations and refusals when Gemini quota is available.
+- Re-run the full live RAG evaluation and inspect generated citations and refusals when Gemini quota permits.
 - Add chunk-level gold evidence spans to reduce page-label scoring ambiguity.
 - Explore query-aware retrieval or reranking only after measured before/after tests.
 - Add OCR for scanned PDFs and broader, user-approved domain corpora.

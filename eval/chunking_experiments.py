@@ -13,7 +13,7 @@ from typing import Callable, Sequence
 import chromadb
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-PROJECT_SRC = PROJECT_ROOT / "src"
+PROJECT_SRC = PROJECT_ROOT / "backend" / "src"
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 if str(PROJECT_SRC) not in sys.path:
@@ -24,7 +24,7 @@ from quillseek.embeddings import Embedder
 from quillseek.ingestion import ingest_files
 from quillseek.vectorstore import ChromaVectorStore
 from eval.metrics import RetrievalMetrics, mean_metrics, retrieval_metrics
-from scripts.build_corpus import CORPUS_DIR, DOCUMENTS
+from backend.scripts.build_corpus import CORPUS_DIR, DOCUMENTS
 
 QUESTIONS_PATH = PROJECT_ROOT / "eval" / "questions.json"
 CSV_PATH = PROJECT_ROOT / "eval" / "results" / "chunking.csv"

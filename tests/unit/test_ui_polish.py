@@ -23,7 +23,7 @@ def test_text_contrast_is_safe_on_brand_surfaces() -> None:
 
 
 def test_styles_cover_hover_focus_responsive_and_reduced_motion() -> None:
-    css = (ROOT / "src" / "quillseek" / "ui" / "styles.css").read_text(encoding="utf-8")
+    css = (ROOT / "frontend" / "src" / "quillseek_frontend" / "styles.css").read_text(encoding="utf-8")
     assert ":hover" in css
     assert "focus-visible" in css
     assert "@media (max-width: 640px)" in css
@@ -32,9 +32,9 @@ def test_styles_cover_hover_focus_responsive_and_reduced_motion() -> None:
 
 
 def test_launcher_supplies_brand_favicon() -> None:
-    launcher = (ROOT / "scripts" / "run_frontend.py").read_text(encoding="utf-8")
+    launcher = (ROOT / "frontend" / "scripts" / "run_frontend.py").read_text(encoding="utf-8")
     assert "favicon_path=" in launcher
-    assert (ROOT / "assets" / "favicon.svg").is_file()
+    assert (ROOT / "frontend" / "assets" / "favicon.svg").is_file()
 
 
 def test_manual_ui_checklist_tracks_unavailable_browser_automation() -> None:

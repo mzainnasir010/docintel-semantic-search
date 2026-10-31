@@ -38,7 +38,7 @@ The backend embeds a query with the same model used for documents, retrieves cos
 
 ## Runtime boundaries
 
-- The Gradio process uses `quillseek.ui.APIClient`; it does not open ChromaDB or call Gemini directly.
+- The Gradio process uses `quillseek_frontend.APIClient`; it does not open ChromaDB or call Gemini directly.
 - The FastAPI process owns upload/index/search/ask routes and the indexing job manager.
 - Uploaded files and the vector index are local runtime data and are ignored by Git.
 - Ask requests send the question and retrieved passage context to the Gemini Developer API; API keys remain in server-side configuration.

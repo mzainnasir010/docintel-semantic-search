@@ -69,42 +69,23 @@ Create exactly this layout (add files as needed, keep it modular):
 ├── README.md
 ├── requirements.txt
 ├── .env.example                # variable names only; Gemini API key uses a safe placeholder
-├── .gitignore                  # must include .env, data/chroma, data/uploads, __pycache__, .venv
-├── assets/
-│   ├── logo.svg                # created in Step 8.1
-│   └── favicon.svg
+├── .gitignore                  # root settings and shared ignore rules
+├── backend/
+│   ├── src/quillseek/          # config, models, ingestion, preprocessing, chunking,
+│   │                           # embeddings, vectorstore, indexing, search, rag, API
+│   └── scripts/                # backend launcher, indexing/search CLI, Gemini check
+├── frontend/
+│   ├── src/quillseek_frontend/ # Gradio app, API client, theme, formatting, CSS
+│   ├── frontend/scripts/run_frontend.py
+│   └── assets/                 # logo and favicon
 ├── data/
 │   ├── sample_docs/            # public corpus (committed)
 │   ├── uploads/                # runtime uploads (gitignored)
 │   └── chroma/                 # vector DB persistence (gitignored)
-├── docs/
-│   ├── architecture.md         # diagram (mermaid) + explanation
-│   ├── EVALUATION.md           # metrics, 4 cases, error analysis
-│   ├── CHUNKING_EXPERIMENTS.md
-│   ├── SEARCH_EXAMPLES.md      # worked examples table
-│   ├── LINKEDIN_CAPTION.md
-│   └── screenshots/
-├── eval/
-│   ├── questions.json          # 20-30 questions with gold doc/page
-│   ├── run_eval.py
-│   └── results/
-├── src/
-│   └── <package_name>/         # use the project name chosen in Step 8.1, or `quillseek` until then
-│       ├── config.py
-│       ├── logging_config.py
-│       ├── models.py           # Pydantic/dataclass models (Document, Page, Chunk, SearchResult, ...)
-│       ├── ingestion/          # loaders (pdf, docx, txt), router, ingest service
-│       ├── preprocessing/      # cleaning, header/footer removal, normalisation
-│       ├── chunking/           # recursive, sentence, section-aware, factory
-│       ├── embeddings/         # embedder wrapper
-│       ├── vectorstore/        # chroma wrapper
-│       ├── indexing/           # pipeline orchestrator with progress callbacks
-│       ├── search/             # semantic search service
-│       ├── rag/                # Gemini API client, prompts, rag service
-│       ├── api/                # FastAPI app, routes, schemas, job manager
-│       └── ui/                 # Gradio app, theme, components
-├── scripts/                    # helper scripts (run_backend, run_frontend, build_corpus, ...)
-└── tests/
+├── docs/                       # architecture, evaluation, screenshots, guides
+├── eval/                       # questions, runners and results
+├── scripts/                    # shared corpus/security/documentation utilities
+└── tests/                       # unit and integration coverage for both apps
     ├── conftest.py
     ├── unit/
     └── integration/
@@ -230,7 +211,7 @@ LOG_LEVEL=
   - Bubblegum Pink `#FD91CC` (accents: highlights, hover states, badges, score pills, focus rings)
   - Neutral tints derived from these are allowed (e.g. very light blue/grey for borders and subtle surfaces). Keep text contrast accessible: use deep blue or near-black text, never pink text on white for body copy.
 - **Project name:** choose ONE simple, unique, memorable one-word name (not an existing well-known product; short; easy to spell; suggestive of documents, meaning or search). Record it in `PROGRESS.md` and use it consistently in the UI, README, package name, and docs.
-- **Logo:** design an original SVG logo (`assets/logo.svg`, plus `assets/favicon.svg`) using only the theme colours: a simple modern mark (e.g. a document/page combined with a spark, magnifier or speech bubble) plus the wordmark. Use it in the **header and footer** of the UI, and in the README.
+- **Logo:** design an original SVG logo (`frontend/assets/logo.svg`, plus `frontend/assets/favicon.svg`) using only the theme colours: a simple modern mark (e.g. a document/page combined with a spark, magnifier or speech bubble) plus the wordmark. Use it in the **header and footer** of the UI, and in the README.
 - **Style:** modern, clean, generous whitespace, rounded corners, soft shadows, card-based layout, subtle hover/transition effects, responsive. Header: deep blue bar with logo, name and a short tagline. Footer: logo, name, "Built during the seKer AI internship", and a truthful privacy note: "Your index stays on this machine; retrieved passages are sent to Gemini to answer questions."
 - Implement with a custom Gradio theme (`gr.themes.Base` customised) plus a small CSS file. Frontend talks only to the backend API (no business logic in the UI).
 
@@ -258,7 +239,7 @@ Create the repository structure from PLAN.md section 3 in the current directory 
 **Goal:** configure access to a hosted Gemini LLM and choose the model.
 **Codex prompt:**
 ```text
-Use Google Gemini Developer API via REST and `httpx`; do not use a local Ollama server. The user has a Windows machine with 16 GB RAM and Intel UHD 620 integrated graphics, which is not a constraint for a hosted model. Use `gemini-3.8-flash` as the initial model choice (official model documentation currently lists it as a stable Flash model suited to new projects). Tell the user to create an API key in Google AI Studio and store it only in the project-root `.env` as `GEMINI_API_KEY=...`; never ask them to paste the key in chat. In `.env.example`, use `GEMINI_API_KEY=your-api-key-here` and leave other values blank. Set `GEMINI_MODEL=gemini-3.8-flash` and `GEMINI_BASE_URL=https://generativelanguage.googleapis.com/v1beta`. Write `scripts/check_gemini.py` that sends one short test prompt using the official `generateContent` REST endpoint with the key in the `x-goog-api-key` header (never in the URL), then prints the reply and latency without printing the key. Add a `gemini`-marked live test that skips gracefully when credentials/network are unavailable. Also verify the sentence-transformers embedding model downloads and loads (first run needs internet).
+Use Google Gemini Developer API via REST and `httpx`; do not use a local Ollama server. The user has a Windows machine with 16 GB RAM and Intel UHD 620 integrated graphics, which is not a constraint for a hosted model. Use `gemini-3.8-flash` as the initial model choice (official model documentation currently lists it as a stable Flash model suited to new projects). Tell the user to create an API key in Google AI Studio and store it only in the project-root `.env` as `GEMINI_API_KEY=...`; never ask them to paste the key in chat. In `.env.example`, use `GEMINI_API_KEY=your-api-key-here` and leave other values blank. Set `GEMINI_MODEL=gemini-3.8-flash` and `GEMINI_BASE_URL=https://generativelanguage.googleapis.com/v1beta`. Write `backend/scripts/check_gemini.py` that sends one short test prompt using the official `generateContent` REST endpoint with the key in the `x-goog-api-key` header (never in the URL), then prints the reply and latency without printing the key. Add a `gemini`-marked live test that skips gracefully when credentials/network are unavailable. Also verify the sentence-transformers embedding model downloads and loads (first run needs internet).
 ```
 **Tests:** `gemini`-marked test that calls the configured API and gets a non-empty reply (skips gracefully if key/network is unavailable); unit tests for request construction that do not need a real key.
 **Done when:** user configured Gemini API access locally; selected model check succeeds; embedding model loads; decision recorded in `PROGRESS.md`.
@@ -267,7 +248,7 @@ Use Google Gemini Developer API via REST and `httpx`; do not use a local Ollama 
 **Goal:** a legal, public corpus of 5-15 related-but-distinct documents (PDF, DOCX, TXT mix).
 **Codex prompt:**
 ```text
-Propose 2-3 corpus themes to the user (e.g. open-access AI/ML research papers from arXiv, public government/NGO policy reports, public product or technical documentation, public-domain educational material) and ask them to pick one. Then assemble 5-15 documents on that theme that are public, legally redistributable and contain no personal or confidential data, covering related but DISTINCT subjects so retrieval must discriminate. Include at least one DOCX and one TXT (convert or create from public material if needed) alongside PDFs. Download what you can with scripts/build_corpus.py into data/sample_docs/ and write data/sample_docs/SOURCES.md listing each file, source URL and licence. If downloads are blocked, give the user a list of links and instructions to download them manually into data/sample_docs/, and wait.
+Propose 2-3 corpus themes to the user (e.g. open-access AI/ML research papers from arXiv, public government/NGO policy reports, public product or technical documentation, public-domain educational material) and ask them to pick one. Then assemble 5-15 documents on that theme that are public, legally redistributable and contain no personal or confidential data, covering related but DISTINCT subjects so retrieval must discriminate. Include at least one DOCX and one TXT (convert or create from public material if needed) alongside PDFs. Download what you can with backend/scripts/build_corpus.py into data/sample_docs/ and write data/sample_docs/SOURCES.md listing each file, source URL and licence. If downloads are blocked, give the user a list of links and instructions to download them manually into data/sample_docs/, and wait.
 ```
 **Tests:** a test asserting the corpus folder has 5-15 files of the allowed types and SOURCES.md covers each file.
 **Done when:** corpus present, documented, approved by the user.
@@ -364,7 +345,7 @@ In vectorstore/ implement a ChromaDB wrapper using a persistent client at CHROMA
 **Goal:** documents in, searchable index out with no manual steps.
 **Codex prompt:**
 ```text
-In indexing/ implement `index_files(paths, progress_callback)` that runs the full Pipeline A: ingest (with per-file error boundaries) -> preprocess -> chunk -> embed in batches -> store. It must report progress via the callback (current file, stage, percent, counts), skip documents already indexed with identical content (by doc_id), continue past failed files, and return a summary (indexed, skipped, failed with reasons, chunk counts, elapsed time). Also implement index_directory(path). Record indexing time per run for later evaluation. Add scripts/index_corpus.py to index data/sample_docs.
+In backend/src/quillseek/indexing/ implement `index_files(paths, progress_callback)` that runs the full Pipeline A: ingest (with per-file error boundaries) -> preprocess -> chunk -> embed in batches -> store. It must report progress via the callback (current file, stage, percent, counts), skip documents already indexed with identical content (by doc_id), continue past failed files, and return a summary (indexed, skipped, failed with reasons, chunk counts, elapsed time). Also implement index_directory(path). Record indexing time per run for later evaluation. Add backend/scripts/index_corpus.py to index data/sample_docs.
 ```
 **Tests:** integration: index a temp mix of good/bad files, verify counts, idempotent second run (all skipped), progress callback called monotonically, failures reported not raised; run the script on the real corpus once and record the time.
 **Done when:** corpus indexes end to end; tests pass.
@@ -377,7 +358,7 @@ In indexing/ implement `index_files(paths, progress_callback)` that runs the ful
 **Goal:** Top-K retrieval with scores.
 **Codex prompt:**
 ```text
-In search/ implement SearchService.search(query, k, min_similarity, doc_filter) that embeds the query, queries the vector store, returns results sorted by similarity descending with fields: chunk text, doc_name, doc_id, page_number, section, chunk_id, similarity score, and rank. Apply the MIN_SIMILARITY threshold (return an empty list plus a flag when nothing is relevant). Validate inputs (empty query, k bounds). Add scripts/search_cli.py for manual testing.
+In backend/src/quillseek/search/ implement SearchService.search(query, k, min_similarity, doc_filter) that embeds the query, queries the vector store, returns results sorted by similarity descending with fields: chunk text, doc_name, doc_id, page_number, section, chunk_id, similarity score, and rank. Apply the MIN_SIMILARITY threshold (return an empty list plus a flag when nothing is relevant). Validate inputs (empty query, k bounds). Add backend/scripts/search_cli.py for manual testing.
 ```
 **Tests:** unit (ordering, threshold, empty index, empty query); integration on the corpus: a paraphrased query retrieves the right document in the top results.
 **Done when:** tests pass.
@@ -386,7 +367,7 @@ In search/ implement SearchService.search(query, k, min_similarity, doc_filter) 
 **Goal:** the README table of real queries and real results.
 **Codex prompt:**
 ```text
-Write scripts/make_search_examples.py that runs 8-10 diverse queries (including paraphrased ones and one weak/off-topic one) against the real index and writes docs/SEARCH_EXAMPLES.md with a table: Example query | Retrieved document and page | Similarity | Result (Correct / Partial / Weak match). Judge correctness against the eval questions' expected sources, not by guesswork. Use real measured values only.
+Write backend/scripts/make_search_examples.py that runs 8-10 diverse queries (including paraphrased ones and one weak/off-topic one) against the real index and writes docs/SEARCH_EXAMPLES.md with a table: Example query | Retrieved document and page | Similarity | Result (Correct / Partial / Weak match). Judge correctness against the eval questions' expected sources, not by guesswork. Use real measured values only.
 ```
 **Tests:** a test that the script runs and the generated table has the right columns and rows.
 **Done when:** `docs/SEARCH_EXAMPLES.md` generated.
@@ -439,7 +420,7 @@ Using the configured real Gemini model, run the answerable eval questions and th
 **Goal:** clean REST API over the services.
 **Codex prompt:**
 ```text
-In api/ build the FastAPI app with Pydantic request/response schemas and these routes: GET /health (API status, Gemini API configured/reachable status, model name, embedding model, chunk count); POST /documents/upload (multipart, multiple files; validate type and size; save to UPLOAD_DIR; sanitise file names); GET /documents (indexed documents with chunk counts and pages, plus uploaded-but-not-indexed files); DELETE /documents/{doc_id}; POST /index (index all pending uploads, returns a job id); GET /index/status/{job_id} (stage, current file, percent, counts, errors, finished flag); POST /search {query, k} -> ranked chunks with scores; POST /ask {query, k} -> answer + sources + latency; DELETE /collection (reset index and uploads). Use dependency injection for services, consistent error responses (no stack traces), CORS enabled for the Gradio origin, request logging, and auto-generated OpenAPI docs. Add scripts/run_backend.py.
+In backend/src/quillseek/api/ build the FastAPI app with Pydantic request/response schemas and these routes: GET /health (API status, Gemini API configured/reachable status, model name, embedding model, chunk count); POST /documents/upload (multipart, multiple files; validate type and size; save to UPLOAD_DIR; sanitise file names); GET /documents (indexed documents with chunk counts and pages, plus uploaded-but-not-indexed files); DELETE /documents/{doc_id}; POST /index (index all pending uploads, returns a job id); GET /index/status/{job_id} (stage, current file, percent, counts, errors, finished flag); POST /search {query, k} -> ranked chunks with scores; POST /ask {query, k} -> answer + sources + latency; DELETE /collection (reset index and uploads). Use dependency injection for services, consistent error responses (no stack traces), CORS enabled for the Gradio origin, request logging, and auto-generated OpenAPI docs. Add backend/scripts/run_backend.py.
 ```
 **Tests:** unit for schemas/validation; integration with FastAPI TestClient and a temp Chroma dir and stub LLM for every route (happy path, empty index, bad file type, oversize file, unknown job id, reset).
 **Done when:** all routes tested.
@@ -461,7 +442,7 @@ Implement a job manager so POST /index runs the indexing pipeline in a backgroun
 **Goal:** project identity and design system.
 **Codex prompt:**
 ```text
-Follow PLAN.md section 9. Choose the one-word project name (tell the user which name you chose and why, but do not wait for approval unless they object), rename the package/README titles accordingly, create assets/logo.svg and assets/favicon.svg using only #09318D, #FFFFFF and #FD91CC (modern, simple, works at small sizes and on both white and deep blue backgrounds, so provide a light and dark variant if needed), create ui/theme.py (a custom gr.themes.Base theme with the three brand colours) and ui/styles.css (header, footer, cards, buttons, score pills, source cards, answer card, empty states, responsive rules, subtle transitions). Record the name and design tokens in PROGRESS.md.
+Follow PLAN.md section 9. Choose the one-word project name (tell the user which name you chose and why, but do not wait for approval unless they object), rename the package/README titles accordingly, create frontend/assets/logo.svg and frontend/assets/favicon.svg using only #09318D, #FFFFFF and #FD91CC (modern, simple, works at small sizes and on both white and deep blue backgrounds, so provide a light and dark variant if needed), create frontend/src/quillseek_frontend/theme.py (a custom gr.themes.Base theme with the three brand colours) and frontend/src/quillseek_frontend/styles.css (header, footer, cards, buttons, score pills, source cards, answer card, empty states, responsive rules, subtle transitions). Record the name and design tokens in PROGRESS.md.
 ```
 **Tests:** assets exist and are valid XML/SVG; theme module imports; CSS file loads; a test that the brand colour constants equal the three required hex values.
 **Done when:** identity assets and theme exist.
@@ -470,7 +451,7 @@ Follow PLAN.md section 9. Choose the one-word project name (tell the user which 
 **Goal:** header/footer layout and document management.
 **Codex prompt:**
 ```text
-Build ui/app.py (Gradio Blocks, brand theme, CSS) that talks ONLY to the backend via an API client module (ui/api_client.py using httpx and BACKEND_URL; handle backend-down errors with friendly messages). Layout: header (logo, name, tagline, backend/Gemini status indicator from /health) and footer (logo, name, internship credit, privacy note) on every view, with tabs: Documents, Search, Ask. Documents tab: multi-file upload (PDF/DOCX/TXT), a table of uploaded/indexed documents (name, type, pages, chunks, status), an "Index documents" button with a visible progress bar and live status text driven by polling /index/status (the screen must never look frozen), per-file failure messages, a "Delete document" action, and a "Clear collection" button with a confirmation step. Include a friendly empty state when nothing is uploaded. Add scripts/run_frontend.py.
+Build frontend/src/quillseek_frontend/app.py (Gradio Blocks, brand theme, CSS) that talks ONLY to the backend via an API client module (frontend/src/quillseek_frontend/api_client.py using httpx and BACKEND_URL; handle backend-down errors with friendly messages). Layout: header (logo, name, tagline, backend/Gemini status indicator from /health) and footer (logo, name, internship credit, privacy note) on every view, with tabs: Documents, Search, Ask. Documents tab: multi-file upload (PDF/DOCX/TXT), a table of uploaded/indexed documents (name, type, pages, chunks, status), an "Index documents" button with a visible progress bar and live status text driven by polling /index/status (the screen must never look frozen), per-file failure messages, a "Delete document" action, and a "Clear collection" button with a confirmation step. Include a friendly empty state when nothing is uploaded. Add frontend/scripts/run_frontend.py.
 ```
 **Tests:** unit tests for api_client (mocked httpx: success, backend down, error payloads); a smoke test that the Gradio app object builds without error; integration test of the client against the TestClient/live backend where practical.
 **Done when:** a document can be uploaded, indexed with progress, listed, deleted and cleared from the UI.

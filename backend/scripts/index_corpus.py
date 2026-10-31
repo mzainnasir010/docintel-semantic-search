@@ -3,18 +3,20 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-PROJECT_SRC = PROJECT_ROOT / "src"
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PROJECT_SRC = PROJECT_ROOT / "backend" / "src"
+os.chdir(PROJECT_ROOT)
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 if str(PROJECT_SRC) not in sys.path:
     sys.path.insert(0, str(PROJECT_SRC))
 
 from quillseek.indexing import index_files
-from scripts.build_corpus import CORPUS_DIR, DOCUMENTS
+from backend.scripts.build_corpus import CORPUS_DIR, DOCUMENTS
 
 
 def main() -> int:

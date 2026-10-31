@@ -3,7 +3,7 @@
 import pymupdf
 from docx import Document as WordDocument
 
-from scripts.build_corpus import DOCUMENTS, CORPUS_DIR, COPYRIGHT_NOTICE, LICENSE_NAME
+from backend.scripts.build_corpus import DOCUMENTS, CORPUS_DIR, COPYRIGHT_NOTICE, LICENSE_NAME
 
 
 def test_corpus_contains_licensed_pdf_docx_and_txt_documents() -> None:

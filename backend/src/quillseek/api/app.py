@@ -22,6 +22,15 @@ from quillseek.indexing import index_files
 from quillseek.ingestion import stable_document_id
 from quillseek.models import IndexProgress
 from quillseek.rag import CitationValidationError, GeminiClient, RAGService
+from quillseek.rag.llm import (
+    InvalidAPIKeyError,
+    LLMError,
+    LLMTimeoutError,
+    ModelUnavailableError,
+    NetworkError,
+    RateLimitError,
+    ServiceUnavailableError,
+)
 from quillseek.search import SearchService
 from quillseek.vectorstore import ChromaVectorStore
 from quillseek.api.schemas import (
@@ -147,6 +156,34 @@ def create_app(
             content=ErrorResponse(
                 error="invalid_model_response",
                 detail="The language model returned an answer without valid source citations.",
+            ).model_dump(),
+        )
+
+    @app.exception_handler(LLMError)
+    async def gemini_error(_request: Request, error: LLMError):
+        # Log only the classified provider failure, never a request header or API key.
+        logger.warning("Gemini request failed (%s): %s", type(error).__name__, error)
+        status_code = 503
+        code = "gemini_unavailable"
+        detail = "The Gemini service is temporarily unavailable."
+        if isinstance(error, RateLimitError):
+            status_code = 429
+            code = "gemini_rate_limited"
+            detail = "Gemini quota or rate limit was reached. Wait and retry, or use a project with available quota."
+        elif isinstance(error, InvalidAPIKeyError):
+            status_code = 401
+            code = "gemini_authentication_failed"
+            detail = "Gemini rejected the configured API key or its permissions. Check GEMINI_API_KEY in .env."
+        elif isinstance(error, ModelUnavailableError):
+            code = "gemini_model_unavailable"
+            detail = "The configured Gemini model is unavailable. Check GEMINI_MODEL in .env."
+        elif isinstance(error, (LLMTimeoutError, NetworkError, ServiceUnavailableError)):
+            detail = "Gemini is temporarily unreachable. Retry in a moment."
+        return JSONResponse(
+            status_code=status_code,
+            content=ErrorResponse(
+                error=code,
+                detail=detail,
             ).model_dump(),
         )
 

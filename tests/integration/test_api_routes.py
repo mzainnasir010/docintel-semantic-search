@@ -11,6 +11,7 @@ from quillseek.api import create_app
 from quillseek.config import Settings
 from quillseek.indexing import index_files
 from quillseek.rag import RAGService
+from quillseek.rag.llm import RateLimitError
 from quillseek.search import SearchService
 from quillseek.vectorstore import ChromaVectorStore
 
@@ -223,6 +224,22 @@ def test_empty_index_ask_refuses_without_calling_llm(api) -> None:
     assert answer.json()["refused"] is True
     assert answer.json()["answer"] == "the answer is not present in the supplied documents"
     assert llm.calls == []
+
+
+def test_gemini_rate_limit_returns_an_actionable_safe_response(api, monkeypatch) -> None:
+    client, _store, _llm = api
+
+    def rate_limited(_query: str, *, k: int | None = None):
+        raise RateLimitError("provider quota details are private")
+
+    monkeypatch.setattr(client.app.state.rag_service, "ask", rate_limited)
+    response = client.post("/ask", json={"query": "What does the document say?"})
+
+    assert response.status_code == 429
+    assert response.json() == {
+        "error": "gemini_rate_limited",
+        "detail": "Gemini quota or rate limit was reached. Wait and retry, or use a project with available quota.",
+    }
 
 
 def test_running_index_job_is_exclusive_but_search_and_ask_stay_available(api) -> None:

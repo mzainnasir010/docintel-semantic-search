@@ -38,5 +38,7 @@ def test_pricing_is_versioned_for_the_selected_gemini_model() -> None:
 
     assert pricing_for("gemini-3.8-flash", date(2026, 10, 31)) == (0.75, 3.75)
     assert pricing_for("gemini-3.8-flash", date(2027, 1, 1)) == (1.5, 7.5)
+    assert pricing_for("gemini-3.6-flash", date(2026, 10, 31)) == (0.75, 3.75)
+    assert pricing_for("gemini-3.6-flash", date(2027, 1, 1)) == (1.5, 7.5)
     with pytest.raises(ValueError, match="No dated pricing"):
         pricing_for("unknown-model", date(2026, 10, 31))

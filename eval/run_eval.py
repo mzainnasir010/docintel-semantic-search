@@ -14,7 +14,7 @@ from statistics import mean
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / "src"
+SRC = ROOT / "backend" / "src"
 for import_path in (ROOT, SRC):
     if str(import_path) not in sys.path:
         sys.path.insert(0, str(import_path))
@@ -34,7 +34,7 @@ EVALUATION_K_VALUES = (3, 5, 10, 20)
 
 def pricing_for(model: str, run_date: date) -> tuple[float, float]:
     """Return paid Standard token rates (USD per million) for the configured model."""
-    if model == "gemini-3.8-flash":
+    if model in {"gemini-3.6-flash", "gemini-3.8-flash"}:
         if run_date <= date(2026, 12, 31):
             return 0.75, 3.75
         return 1.50, 7.50

@@ -8,7 +8,7 @@ from typing import Any, Iterable
 
 import httpx
 
-from quillseek.config import get_settings
+from quillseek_frontend.config import get_frontend_settings
 
 
 class BackendError(RuntimeError):
@@ -38,7 +38,7 @@ class APIClient:
         client: Any | None = None,
         timeout: float = 15.0,
     ) -> None:
-        self.base_url = (base_url or get_settings().backend_url).rstrip("/")
+        self.base_url = (base_url or get_frontend_settings().backend_url).rstrip("/")
         self._client = client or httpx.Client(timeout=timeout)
         self._owns_client = client is None
         self.timeout = timeout
