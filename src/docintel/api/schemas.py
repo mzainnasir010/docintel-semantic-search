@@ -56,14 +56,14 @@ class UploadResponse(BaseModel):
 
 
 class IndexResponse(BaseModel):
-    """Index run identifier and immediate run result."""
+    """Index job identifier and its initial state."""
 
     job_id: str
-    indexed: int
-    skipped: int
-    failed: list[dict]
-    chunks_indexed: int
-    finished: bool = True
+    indexed: int = 0
+    skipped: int = 0
+    failed: list[dict] = Field(default_factory=list)
+    chunks_indexed: int = 0
+    finished: bool = False
 
 
 class IndexStatusResponse(BaseModel):
@@ -75,7 +75,8 @@ class IndexStatusResponse(BaseModel):
     percent: float = Field(ge=0.0, le=100.0)
     indexed: int = Field(ge=0)
     skipped: int = Field(ge=0)
-    failed: list[dict]
+    failed: list[dict] = Field(default_factory=list)
+    failed_count: int = Field(default=0, ge=0)
     chunks_indexed: int = Field(ge=0)
     finished: bool
 

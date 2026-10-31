@@ -1,10 +1,10 @@
 # PROGRESS
 
 ## NEXT STEP
-- Step ID and title: Step 7.2 - Background indexing jobs and end-to-end API test
-- Exactly what to do next: Add a job manager so POST `/index` starts indexing in a background thread/task and returns promptly with a job ID. Update an in-memory job record from indexing progress callbacks; GET `/index/status/{job_id}` must report live progress and final errors/counts. Prevent concurrent jobs against the same collection and keep search/ask available during indexing. Add a TestClient integration that uploads corpus content through the API, starts indexing, polls to completion, searches, and asks with a stub LLM; add a `gemini`-marked live variant. Document endpoint examples in `docs/api.md`.
-- Files likely to be touched: `src/docintel/api/`, `docs/api.md`, `tests/integration/`.
-- Pending user input or blockers: None.
+- Step ID and title: Step 8.1 - Brand identity: name, logo, theme
+- Exactly what to do next: Follow PLAN.md section 9. Choose a one-word project name, tell the user why, and proceed unless they object. Rename package/README titles accordingly. Create `assets/logo.svg` and `assets/favicon.svg` using only `#09318D`, `#FFFFFF`, and `#FD91CC`; provide light/dark variants if needed. Create `ui/theme.py` with a custom `gr.themes.Base` theme and `ui/styles.css` for header, footer, cards, buttons, score pills, source cards, answer card, empty states, responsive rules, and subtle transitions. Record the name and design tokens in `PROGRESS.md`. Test SVG XML validity, theme import, CSS availability, and exact brand-color constants.
+- Files likely to be touched: `src/docintel/`, `README.md`, `assets/`, `src/docintel/ui/`, `tests/`.
+- Pending user input or blockers: None; PLAN.md says choose autonomously unless the user objects.
 
 ## Current state summary
 - Step 0.1 scaffold is implemented; Python 3.11.9 is available.
@@ -14,7 +14,7 @@
 - Gemini `gemini-3.8-flash` is configured and live-verified using the ignored project-root `.env`; the key is not recorded in Git or progress notes.
 - Sentence-transformers model loads with embedding dimension 384.
 - Corpus: 9 redistributable Python docs (4 TXT, 3 PDF, 2 DOCX), each attributed; `SOURCES.md` and PSF license included.
-- Current backend regression suite: 129 passed, 0 failed, 10 live Gemini tests deselected (`pytest -m "not gemini"`). Step 6.1 live Gemini test passed after clearing a stale `GEMINI_API_KEY` process override so Pydantic loaded the updated `.env` key.
+- Current backend regression suite: 131 passed, 0 failed, 11 live Gemini tests deselected (`pytest -m "not gemini"`). Step 6.1 live Gemini client test passed after clearing a stale `GEMINI_API_KEY` process override. Live grounding and API variants are present; API live validation is deferred because the key hit HTTP 429 during Step 6.3.
 - GitHub destination was supplied by the user; push is deferred until the project is complete.
 
 ## Step log
@@ -39,6 +39,7 @@
 | 6.2 | Prompt builder and RAG service | done | 2026-10-31 | 101 unit passed / 19 integration passed | Added context-only prompt instructions, labelled source context, strict total character budget/truncation, retrieval-only mode, threshold refusal without calling LLM, citation validation and source mapping, snippets, and retrieval/generation latency. Added 9 unit tests and real-index integration with a stub LLM. Fixed pytest module-name collision by giving unit and integration tests unique module names. Full regression: 119 passed, 2 live Gemini tests deselected. Commit: `step 6.2: Prompt builder and RAG service`. |
 | 6.3 | Grounding and refusal validation (live) | done with documented limitations | 2026-10-31 | 119 non-live passed / 10 live deselected; 2 of 8 live grounding cases passed | Added live checks for four approved answerable questions and all four corpus-unanswerable questions. Initial run: Q-001 and Q-014 passed; Q-004 returned an uncited answer, Q-019 timed out, and later requests hit HTTP 429. Tightened system prompt with mandatory citations and a concrete cited-answer/refusal example; set Gemini 3.8 thinking level to `low` to reduce latency. Retest of Q-004 could not evaluate the prompt change because Gemini returned 429. Checks remain enabled and strict; rerun after quota resets. Limitation and mitigation are explicit rather than weakening assertions. Full non-live regression: 119 passed, 10 live tests deselected. Commit: `step 6.3: Grounding and refusal validation`. |
 | 7.1 | FastAPI application and routes | done | 2026-10-31 | 6 unit passed / 4 integration passed | Added injectable FastAPI app and typed schemas for health, upload, documents, index/status, search, ask, and collection reset; safe validation/HTTP/citation/internal error responses; Gradio CORS; request logging; model health probe; file type/size checks, sanitized collision-safe storage, and `scripts/run_backend.py`. TestClient routes use temporary Chroma and a stub LLM; coverage includes every route, empty index refusal, bad/oversize upload, unknown job/document, and reset. First sandboxed TestClient attempt exposed Windows local socketpair sandbox hang; escalated run passed. Full regression: 129 passed, 10 live Gemini cases deselected. Commit: `step 7.1: FastAPI application and routes`. |
+| 7.2 | Background indexing jobs and end-to-end API test | done | 2026-10-31 | 6 unit passed / 6 non-live integration passed; 1 live API variant deselected | `POST /index` now returns HTTP 202 and a job ID while a single-worker background executor indexes. Progress and errors are lock-protected; simultaneous index jobs and resets during active indexing return 409; search/ask remain usable. Added a real-corpus upload/index/poll/search/ask TestClient path with stub LLM, concurrency/availability checks, a real Gemini API variant, and endpoint examples in `docs/api.md`. Targeted API tests: 12 passed. Full regression: 131 passed, 11 live cases deselected. Gemini live API variant not run because Gemini returned HTTP 429 during Step 6.3; test remains opt-in. Commit: `step 7.2: Background indexing jobs and end-to-end API test`. |
 
 ## Decisions made
 - Project name: `docintel` is the temporary package name until Step 8.1 selects the final brand.
@@ -59,7 +60,7 @@
 ## How to run (kept current)
 - Setup: `python -m venv .venv`; `.\\.venv\\Scripts\\Activate.ps1`; `python -m pip install -r requirements.txt`.
 - If a Windows process environment variable `GEMINI_API_KEY` is stale, clear it in that PowerShell session with `Remove-Item Env:GEMINI_API_KEY -ErrorAction SilentlyContinue`; otherwise it overrides the key in `.env`.
-- Tests: `$env:HF_HUB_OFFLINE='1'; .\\.venv\\Scripts\\python.exe -m pytest -m "not gemini"` (129 passed; excludes all 10 live Gemini cases; uses cached embedding model).
+- Tests: `$env:HF_HUB_OFFLINE='1'; .\\.venv\\Scripts\\python.exe -m pytest -m "not gemini"` (131 passed; excludes all 11 live Gemini cases; uses cached embedding model).
 - Gemini check: `.venv\\Scripts\\python.exe scripts/check_gemini.py`.
 - Backend: not implemented yet.
 - Frontend: not implemented yet.

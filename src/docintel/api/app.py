@@ -5,7 +5,9 @@ from __future__ import annotations
 import logging
 import re
 import shutil
+import threading
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any, Callable
 
@@ -96,6 +98,8 @@ def create_app(
     app.state.rag_service = active_rag
     app.state.indexer = indexer
     app.state.jobs: dict[str, dict[str, Any]] = {}
+    app.state.job_lock = threading.Lock()
+    app.state.index_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="docintel-index")
     app.state.upload_dir = upload_dir
 
     app.add_middleware(
@@ -244,70 +248,84 @@ def create_app(
             "deleted_uploads": deleted_uploads,
         }
 
-    @app.post("/index", response_model=IndexResponse, tags=["indexing"])
-    def start_index() -> IndexResponse:
-        pending_paths = [
-            path
-            for path in sorted(upload_dir.rglob("*"), key=lambda item: item.name.casefold())
-            if path.is_file()
-        ]
-        progress: dict[str, Any] = {
-            "stage": "queued",
-            "current_file": "",
-            "percent": 0.0,
-            "indexed": 0,
-            "skipped": 0,
-            "failed": [],
-            "chunks_indexed": 0,
-            "finished": False,
-        }
+    def _run_index_job(job_id: str, pending_paths: list[Path]) -> None:
+        state = app.state.jobs[job_id]
 
         def update(snapshot: IndexProgress) -> None:
-            progress.update(
-                stage=snapshot.stage,
-                current_file=snapshot.current_file,
-                percent=snapshot.percent,
-                indexed=snapshot.indexed,
-                skipped=snapshot.skipped,
-                failed=snapshot.failed,
-                chunks_indexed=snapshot.chunks_indexed,
-            )
+            with app.state.job_lock:
+                state.update(
+                    stage=snapshot.stage,
+                    current_file=snapshot.current_file,
+                    percent=snapshot.percent,
+                    indexed=snapshot.indexed,
+                    skipped=snapshot.skipped,
+                    failed_count=snapshot.failed,
+                    chunks_indexed=snapshot.chunks_indexed,
+                )
 
-        summary = app.state.indexer(
-            pending_paths,
-            update,
-            store=active_store,
-            run_log_path=None,
-        )
-        job_id = summary.run_id
-        progress.update(
-            stage="complete",
-            current_file=progress.get("current_file", ""),
-            percent=100.0,
-            indexed=summary.indexed,
-            skipped=summary.skipped,
-            failed=[failure.model_dump(mode="json") for failure in summary.failed],
-            chunks_indexed=summary.chunks_indexed,
-            finished=True,
-        )
-        app.state.jobs[job_id] = progress
-        return IndexResponse(
-            job_id=job_id,
-            indexed=summary.indexed,
-            skipped=summary.skipped,
-            failed=[failure.model_dump(mode="json") for failure in summary.failed],
-            chunks_indexed=summary.chunks_indexed,
-            finished=True,
-        )
+        try:
+            summary = app.state.indexer(
+                pending_paths,
+                update,
+                store=active_store,
+                run_log_path=None,
+            )
+            with app.state.job_lock:
+                state.update(
+                    stage="complete",
+                    percent=100.0,
+                    indexed=summary.indexed,
+                    skipped=summary.skipped,
+                    failed=[failure.model_dump(mode="json") for failure in summary.failed],
+                    failed_count=len(summary.failed),
+                    chunks_indexed=summary.chunks_indexed,
+                    finished=True,
+                )
+        except Exception as error:
+            logger.exception("Index job %s failed", job_id)
+            with app.state.job_lock:
+                state.update(
+                    stage="failed",
+                    failed=[{"file_name": "", "reason": str(error) or "Indexing failed"}],
+                    failed_count=1,
+                    finished=True,
+                )
+
+    @app.post("/index", response_model=IndexResponse, status_code=202, tags=["indexing"])
+    def start_index() -> IndexResponse:
+        with app.state.job_lock:
+            if any(not job["finished"] for job in app.state.jobs.values()):
+                raise HTTPException(status_code=409, detail="An index job is already running")
+            pending_paths = [
+                path
+                for path in sorted(upload_dir.rglob("*"), key=lambda item: item.name.casefold())
+                if path.is_file()
+            ]
+            job_id = uuid.uuid4().hex
+            app.state.jobs[job_id] = {
+                "stage": "queued",
+                "current_file": "",
+                "percent": 0.0,
+                "indexed": 0,
+                "skipped": 0,
+                "failed": [],
+                "failed_count": 0,
+                "chunks_indexed": 0,
+                "finished": False,
+            }
+            app.state.index_executor.submit(_run_index_job, job_id, pending_paths)
+        return IndexResponse(job_id=job_id, finished=False)
 
     @app.get(
         "/index/status/{job_id}", response_model=IndexStatusResponse, tags=["indexing"]
     )
     def index_status(job_id: str) -> IndexStatusResponse:
-        status = app.state.jobs.get(job_id)
-        if status is None:
-            raise HTTPException(status_code=404, detail="Index job not found")
-        return IndexStatusResponse(job_id=job_id, **status)
+        with app.state.job_lock:
+            status = app.state.jobs.get(job_id)
+            if status is None:
+                raise HTTPException(status_code=404, detail="Index job not found")
+            snapshot = dict(status)
+        return IndexStatusResponse(job_id=job_id, **snapshot)
 
     @app.post("/search", response_model=SearchAPIResponse, tags=["search"])
     def search(request: QueryRequest) -> SearchAPIResponse:
@@ -324,6 +342,9 @@ def create_app(
 
     @app.delete("/collection", tags=["indexing"])
     def reset_collection() -> dict[str, Any]:
+        with app.state.job_lock:
+            if any(not job["finished"] for job in app.state.jobs.values()):
+                raise HTTPException(status_code=409, detail="Cannot reset while indexing is running")
         active_store.reset()
         if upload_dir.exists():
             shutil.rmtree(upload_dir)

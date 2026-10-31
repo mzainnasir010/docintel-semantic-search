@@ -1,6 +1,7 @@
 """Exercise API routes with a temporary Chroma store and deterministic LLM stub."""
 
 import hashlib
+import time
 
 import numpy as np
 import pytest
@@ -44,7 +45,7 @@ def api(tmp_path):
         chroma_path=str(tmp_path / "chroma"),
         collection_name="api-test",
         upload_dir=str(tmp_path / "uploads"),
-        max_upload_bytes=128,
+        max_upload_bytes=10000,
         gemini_api_key="",
         gradio_origin="http://localhost:7860",
     )
@@ -101,10 +102,15 @@ def test_every_api_route_happy_path_and_reset(api) -> None:
     assert pending["pending_uploads"] == ["unsafe name.txt"]
 
     indexed = client.post("/index")
-    assert indexed.status_code == 200
+    assert indexed.status_code == 202
     job_id = indexed.json()["job_id"]
-    assert indexed.json()["indexed"] == 1
+    assert indexed.json()["finished"] is False
     status = client.get(f"/index/status/{job_id}")
+    for _ in range(500):
+        if status.json()["finished"]:
+            break
+        time.sleep(0.01)
+        status = client.get(f"/index/status/{job_id}")
     assert status.status_code == 200
     assert status.json()["finished"] is True
     assert status.json()["chunks_indexed"] == 1
@@ -137,6 +143,43 @@ def test_every_api_route_happy_path_and_reset(api) -> None:
     assert list(client.app.state.upload_dir.iterdir()) == []
 
 
+def test_end_to_end_upload_corpus_index_search_and_ask(api) -> None:
+    from pathlib import Path
+
+    client, _store, _llm = api
+    root = Path(__file__).resolve().parents[2]
+    corpus_file = root / "data" / "sample_docs" / "python_asyncio.txt"
+    uploaded = client.post(
+        "/documents/upload",
+        files=[("files", (corpus_file.name, corpus_file.read_bytes(), "text/plain"))],
+    )
+    assert uploaded.status_code == 200
+    run = client.post("/index")
+    assert run.status_code == 202
+
+    for _ in range(500):
+        status = client.get(f"/index/status/{run.json()['job_id']}")
+        if status.json()["finished"]:
+            break
+        time.sleep(0.01)
+    assert status.json()["finished"] is True
+    assert status.json()["indexed"] == 1
+
+    found = client.post(
+        "/search",
+        json={"query": "How does Python handle asynchronous network I/O?", "k": 5},
+    )
+    assert found.status_code == 200
+    assert found.json()["is_relevant"]
+    assert any(
+        item["chunk"]["doc_name"] == "python_asyncio.txt"
+        for item in found.json()["results"]
+    )
+    answer = client.post("/ask", json={"query": "What syntax does asyncio use?"})
+    assert answer.status_code == 200
+    assert answer.json()["sources"][0]["doc_name"] == "python_asyncio.txt"
+
+
 def test_upload_rejects_bad_type_and_oversize_file(api) -> None:
     client, _store, _llm = api
     bad_type = client.post(
@@ -148,7 +191,16 @@ def test_upload_rejects_bad_type_and_oversize_file(api) -> None:
 
     too_big = client.post(
         "/documents/upload",
-        files=[("files", ("large.txt", b"x" * 129, "text/plain"))],
+        files=[
+            (
+                "files",
+                (
+                    "large.txt",
+                    b"x" * (api[0].app.state.settings.max_upload_bytes + 1),
+                    "text/plain",
+                ),
+            )
+        ],
     )
     assert too_big.status_code == 413
     assert "size limit" in too_big.json()["detail"]
@@ -171,3 +223,40 @@ def test_empty_index_ask_refuses_without_calling_llm(api) -> None:
     assert answer.json()["refused"] is True
     assert answer.json()["answer"] == "the answer is not present in the supplied documents"
     assert llm.calls == []
+
+
+def test_running_index_job_is_exclusive_but_search_and_ask_stay_available(api) -> None:
+    import threading
+
+    client, _store, llm = api
+    started = threading.Event()
+    release = threading.Event()
+    original_indexer = client.app.state.indexer
+
+    def slow_indexer(paths, callback, *, store, run_log_path=None):
+        started.set()
+        assert release.wait(timeout=10)
+        return original_indexer(paths, callback, store=store, run_log_path=run_log_path)
+
+    client.app.state.indexer = slow_indexer
+    try:
+        first = client.post("/index")
+        assert first.status_code == 202
+        job_id = first.json()["job_id"]
+        assert started.wait(timeout=5)
+
+        second = client.post("/index")
+        assert second.status_code == 409
+        assert client.delete("/collection").status_code == 409
+        assert client.post("/search", json={"query": "during indexing"}).status_code == 200
+        assert client.post("/ask", json={"query": "during indexing"}).status_code == 200
+        assert llm.calls == []
+    finally:
+        release.set()
+
+    for _ in range(500):
+        status = client.get(f"/index/status/{job_id}")
+        if status.json()["finished"]:
+            break
+        time.sleep(0.01)
+    assert status.json()["finished"] is True
