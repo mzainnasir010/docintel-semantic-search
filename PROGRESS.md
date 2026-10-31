@@ -1,9 +1,9 @@
 # PROGRESS
 
 ## NEXT STEP
-- Step ID and title: Step 2.1 - Cleaning functions
-- Exactly what to do next: In `preprocessing/`, implement small pure functions and a `clean_text(text)` pipeline that applies Unicode NFKC normalization, standardizes quotes/dashes/ellipses, removes control and zero-width characters, repairs hyphenation across line breaks, joins broken lines within paragraphs while preserving paragraph boundaries, and collapses repeated spaces and excessive blank lines. Preserve headings, bullets, numbered lists, and table-like content. Do not lowercase text; explain why in the module docstring. Add unit tests for every function with before/after examples, including lists, headings, hyphenation, unusual Unicode, and empty input.
-- Files likely to be touched: `src/docintel/preprocessing/`, `tests/unit/`.
+- Step ID and title: Step 2.2 - Repeated header/footer removal and memory-safe processing
+- Exactly what to do next: Implement detection and removal of repeated headers, footers, and standalone page numbers across document pages, normalizing page-number variants such as “Page 3 of 17”. Wire loader output through per-page cleaning and cross-page boilerplate removal using page-wise/generator processing. Preserve page numbers in metadata. Provide a short removal report for logs and README. Add synthetic unit tests for repeated headers/footers, page-number variants, and real-content safeguards; add an integration test using corpus PDF(s) to confirm boilerplate is removed while content and metadata remain. Save a before/after example under `docs/`.
+- Files likely to be touched: `src/docintel/preprocessing/`, `tests/unit/`, `tests/integration/`, `docs/`, README.
 - Pending user input or blockers: None.
 
 ## Current state summary
@@ -14,7 +14,7 @@
 - Gemini `gemini-3.8-flash` is configured and live-verified using the ignored project-root `.env`; the key is not recorded in Git or progress notes.
 - Sentence-transformers model loads with embedding dimension 384.
 - Corpus: 9 redistributable Python docs (4 TXT, 3 PDF, 2 DOCX), each attributed; `SOURCES.md` and PSF license included.
-- Current backend regression suite: 26 passed, 0 failed, 1 live Gemini test deselected (`pytest -m "not gemini"`).
+- Current backend regression suite: 33 passed, 0 failed, 1 live Gemini test deselected (`pytest -m "not gemini"`).
 - GitHub destination was supplied by the user; push is deferred until the project is complete.
 
 ## Step log
@@ -25,6 +25,7 @@
 | 0.3 | Corpus assembly | done | 2026-10-31 | 1 unit passed / 3 integration passed | Selected Python technical documentation at the user's direction to choose autonomously. Built 9 documents (4 TXT, 3 PDF, 2 DOCX) from official Python 3.12 docs under PSF License Version 2; retained license/copyright and adaptation note. `SOURCES.md` records each URL/licence. `.gitignore` excludes history-named files/folders. Commit: `step 0.3: Corpus assembly`. |
 | 1.1 | Data models and loaders | done | 2026-10-31 | 18 unit passed / 4 integration passed | Added validated shared models, resilient PyMuPDF/DOCX/TXT loaders, PDF date parsing, logical DOCX sections and flattened tables, encoding fallbacks, and generated fixtures. `pytest -m "not gemini"`: 22 passed, 1 deselected. Commit: `step 1.1: Data models and loaders`. |
 | 1.2 | Router, multi-document ingestion, error boundaries, stable IDs | done | 2026-10-31 | 21 unit passed / 5 integration passed | Added signature/extension routing, streaming SHA-256 IDs, batch summary and per-file failure records. Mixed-batch integration verifies valid files continue around corrupt and unsupported files. `pytest -m "not gemini"`: 26 passed, 1 deselected. Commit: `step 1.2: Router, multi-document ingestion, error boundaries, stable IDs`. |
+| 2.1 | Cleaning functions | done | 2026-10-31 | 27 unit passed / 6 integration passed | Added NFKC normalization, punctuation standardization, control/format cleanup, hyphenation repair, paragraph joining, and whitespace collapse while preserving headings, lists, tables, paragraphs, and case. Added loader-to-cleaner integration coverage. `pytest -m "not gemini"`: 33 passed, 1 deselected. Commit: `step 2.1: Cleaning functions`. |
 
 ## Decisions made
 - Project name: `docintel` is the temporary package name until Step 8.1 selects the final brand.
@@ -44,7 +45,7 @@
 
 ## How to run (kept current)
 - Setup: `python -m venv .venv`; `.\\.venv\\Scripts\\Activate.ps1`; `python -m pip install -r requirements.txt`.
-- Tests: `.venv\\Scripts\\python.exe -m pytest -m "not gemini"` (26 passed; excludes the separate live API test).
+- Tests: `.venv\\Scripts\\python.exe -m pytest -m "not gemini"` (33 passed; excludes the separate live API test).
 - Gemini check: `.venv\\Scripts\\python.exe scripts/check_gemini.py`.
 - Backend: not implemented yet.
 - Frontend: not implemented yet.
