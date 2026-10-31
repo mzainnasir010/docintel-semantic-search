@@ -28,6 +28,19 @@ def test_settings_accept_environment_overrides(monkeypatch) -> None:
     assert settings.gemini_api_key.get_secret_value() == "unit-test-key"
 
 
+def test_blank_dotenv_values_preserve_defaults(tmp_path, monkeypatch) -> None:
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    env_file = tmp_path / ".env"
+    env_file.write_text("API_PORT=\nTOP_K=\nCHUNK_SIZE=\nGEMINI_API_KEY=\n", encoding="utf-8")
+
+    settings = Settings(_env_file=env_file)
+
+    assert settings.api_port == 8000
+    assert settings.top_k == 5
+    assert settings.chunk_size == 1500
+    assert settings.gemini_api_key.get_secret_value() == ""
+
+
 def test_logging_initializes_console_and_rotating_file(tmp_path) -> None:
     logger = configure_logging("DEBUG", tmp_path / "test.log")
     logger.debug("foundation smoke test")
